@@ -20,7 +20,7 @@
 services:
   renrakucho:
     build: .
-    image: renrakucho:latest
+    pull_policy: never
     container_name: renrakucho
     restart: unless-stopped
     environment:
