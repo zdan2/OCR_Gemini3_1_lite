@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+_vision_compare*
+.claude/
+*.pdf
+*.txt
+!requirements.txt
+*.db
+*bak*
+*.xlsx
+.watch_state.json
+_json_out/
+_reports/
+.env

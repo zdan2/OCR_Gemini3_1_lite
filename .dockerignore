@@ -1,0 +1,40 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Git / IDE
+.git/
+.gitignore
+.claude/
+
+# Data files (must come from the bind-mounted /data volume, not the image)
+*.db
+*.db.*
+*bak*
+.watch_state.json
+
+# Generated outputs
+_reports/
+_json_out/
+_vision_compare*/
+
+# Sample PDFs / OCR text in working dir (only the mounted /scansnap should provide PDFs)
+*.pdf
+*.txt
+nul
+
+# Experimental scripts that aren't part of the production pipeline
+vision_ocr_shootout*.py
+ocr_pdfs.py
+ocr_vision.py
+
+# Roster xlsx ships via /data, not in the image
+*.xlsx
+
+# Docker assets themselves
+Dockerfile
+.dockerignore
+docker-compose.yml
+MIGRATION.md

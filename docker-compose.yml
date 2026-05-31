@@ -1,0 +1,57 @@
+# Dockge 用スタック: 連絡帳パイプライン
+#
+# 配置例 (TrueNAS の Dockge stacks ディレクトリ):
+#   /mnt/tank/dockge/stacks/renrakucho/
+#     ├── compose.yaml   ← このファイル
+#     ├── .env           ← Dockge UI で編集（API キー等）
+#     ├── Dockerfile     ← 同フォルダに置く（git clone でまとめて取得）
+#     ├── requirements.txt
+#     └── *.py           ← アプリ本体
+#
+# 永続データ用データセットを事前に作成しておく:
+#   /mnt/tank/renrakucho/scansnap   ← rclone で Dropbox から同期させる（ro でマウント）
+#   /mnt/tank/renrakucho/data       ← DB / 状態 / 設定 / レポート出力（rw）
+#
+# /data 直下に最初に置くもの:
+#   - alias.json              (リポジトリからコピー)
+#   - 在園児各月児童名簿*.xlsx (元 PC からコピー)
+#   - renrakucho.db           (既存 DB を引き継ぐ場合)
+
+services:
+  renrakucho:
+    build: .
+    image: renrakucho:latest
+    container_name: renrakucho
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Tokyo
+      # 必須: Gemini API キー
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      # Gmail 送信用 (SMTP + アプリパスワード)
+      GMAIL_USER: ${GMAIL_USER}
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD}
+      RECIPIENTS: ${RECIPIENTS:-}
+      # send_report.py が PDF 添付を探す元フォルダ
+      SCAN_DIR: /scansnap
+    volumes:
+      # Dropbox 同期先（rclone アプリが書き込む）。コンテナからは読み取り専用。
+      - /mnt/tank/renrakucho/scansnap:/scansnap:ro
+      # 永続データ。CWD としても使われる。
+      - /mnt/tank/renrakucho/data:/data
+    # watch_folder.py に渡す引数:
+    #   --dir /scansnap : 監視対象
+    #   --send          : 取り込み完了ごとに日次メールを送信（不要なら削除）
+    #   --interval 30   : 走査間隔秒（既定 30）
+    command:
+      - python
+      - /app/watch_folder.py
+      - --dir
+      - /scansnap
+      - --send
+    # ヘルスチェック: 状態ファイルが直近に更新されているかを見る簡易版
+    healthcheck:
+      test: ["CMD", "test", "-f", "/data/.watch_state.json"]
+      interval: 5m
+      timeout: 10s
+      retries: 3
+      start_period: 1m
