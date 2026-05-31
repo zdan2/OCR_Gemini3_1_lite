@@ -9,7 +9,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 # tzdata: ログ・日付の Asia/Tokyo 表示用
 RUN apt-get update \
- && apt-get install -y --no-install-recommends tzdata \
+ && apt-get install -y --no-install-recommends tzdata poppler-utils \
  && rm -rf /var/lib/apt/lists/* \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
  && echo "Asia/Tokyo" > /etc/timezone
