@@ -23,6 +23,7 @@ _vision_compare*/
 # Sample PDFs / OCR text in working dir (only the mounted /scansnap should provide PDFs)
 *.pdf
 *.txt
+!requirements.txt
 nul
 
 # Experimental scripts that aren't part of the production pipeline
