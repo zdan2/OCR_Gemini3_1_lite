@@ -10,11 +10,11 @@ Dockge スタックとして動かすための手順。
 ```
 TrueNAS SCALE
 ├── データセット
-│   ├── /mnt/tank/renrakucho/scansnap  (rclone が Dropbox から同期、コンテナは ro 参照)
-│   └── /mnt/tank/renrakucho/data      (DB / 状態 / 設定 / レポート出力, rw)
+│   ├── /mnt/main/renrakucho/scansnap  (rclone が Dropbox から同期、コンテナは ro 参照)
+│   └── /mnt/main/renrakucho/data      (DB / 状態 / 設定 / レポート出力, rw)
 │
 ├── App: rclone (既存の TrueNAS アプリでもよい)
-│   └── Dropbox の ScanSnap フォルダ → /mnt/tank/renrakucho/scansnap へ定期 pull
+│   └── Dropbox の ScanSnap フォルダ → /mnt/main/renrakucho/scansnap へ定期 pull
 │
 └── App: Dockge
     └── stack: renrakucho (このリポジトリの compose.yaml を使う)
@@ -29,19 +29,19 @@ TrueNAS UI から以下 2 つを作成（プール名は環境に合わせて読
 
 | データセット | 用途 | 権限 |
 |---|---|---|
-| `tank/renrakucho/scansnap` | rclone 同期先 | 所有者: apps、書き込み可 |
-| `tank/renrakucho/data` | DB・設定・出力 | 所有者: apps、書き込み可 |
+| `main/renrakucho/scansnap` | rclone 同期先 | 所有者: apps、書き込み可 |
+| `main/renrakucho/data` | DB・設定・出力 | 所有者: apps、書き込み可 |
 
 ### 1-2. rclone で Dropbox 同期を設定
 方法は何でも可（rclone アプリ / cron / TrueCommand 等）。要件は **1 つだけ**:
 
-> Dropbox の ScanSnap フォルダの中身が `/mnt/tank/renrakucho/scansnap` に
+> Dropbox の ScanSnap フォルダの中身が `/mnt/main/renrakucho/scansnap` に
 > 最新化されていること
 
 5〜10 分間隔の pull で十分（watch_folder 側でも安定確認するため少々遅れても問題ない）。
 
 ### 1-3. 初期データの配置
-SCP / SMB 等で元 PC から `/mnt/tank/renrakucho/data/` 直下に以下をコピー:
+SCP / SMB 等で元 PC から `/mnt/main/renrakucho/data/` 直下に以下をコピー:
 
 | ファイル | 必須？ | 備考 |
 |---|---|---|
@@ -112,7 +112,7 @@ docker logs -f renrakucho
 TrueNAS シェルで:
 
 ```bash
-ls -la /mnt/tank/renrakucho/data/
+ls -la /mnt/main/renrakucho/data/
 # renrakucho.db, .watch_state.json, _reports/ が出来ているはず
 ```
 
@@ -159,7 +159,7 @@ SQLite ファイル 1 個で完結するので ZFS スナップショットで�
 
 | 症状 | 確認ポイント |
 |---|---|
-| ログに「名簿xlsxが見つかりません」 | `/mnt/tank/renrakucho/data/` 直下に `*名簿*.xlsx` があるか |
+| ログに「名簿xlsxが見つかりません」 | `/mnt/main/renrakucho/data/` 直下に `*名簿*.xlsx` があるか |
 | ログに「GEMINI_API_KEY を設定してください」 | `.env` の値が空でないか、Dockge で **Update** したか |
 | 取り込みは走るがメールが飛ばない | `GMAIL_APP_PASSWORD` がアプリパスワード（16 桁）か、2 段階認証が有効か |
 | PDF を置いても無反応 | ファイル名先頭 8 桁が `YYYYMMDD` で、かつ「家庭での生活」と「きいちご」「どんぐり」を含むか |

@@ -35,9 +35,9 @@ services:
       SCAN_DIR: /scansnap
     volumes:
       # Dropbox 同期先（rclone アプリが書き込む）。コンテナからは読み取り専用。
-      - /mnt/tank/renrakucho/scansnap:/scansnap:ro
+      - /mnt/main/renrakucho/scansnap:/scansnap:ro
       # 永続データ。CWD としても使われる。
-      - /mnt/tank/renrakucho/data:/data
+      - /mnt/main/renrakucho/data:/data
     # watch_folder.py に渡す引数:
     #   --dir /scansnap : 監視対象
     #   --send          : 取り込み完了ごとに日次メールを送信（不要なら削除）
