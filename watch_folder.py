@@ -40,6 +40,7 @@ from pathlib import Path
 DEFAULT_DIR = r"C:\Users\hikar\光の森保育園 Dropbox\光の森保育園\ScanSnap"
 STATE_FILE = Path(".watch_state.json")
 MAX_ATTEMPTS = 3  # 取り込み失敗時の最大試行回数
+SCRIPT_DIR = Path(__file__).parent
 
 
 def log(msg: str) -> None:
@@ -125,13 +126,13 @@ def process_file(path: Path, roster: str, do_send: bool) -> bool:
     date = date_from_filename(path.name)
     log(f"[取り込み] {path.name} (日付={date})")
     # 1) 本体パイプライン: PDF → 抽出 → 照合 → DB → 日次CSV
-    if not run([sys.executable, "build_daily_report.py", "--pdf", str(path), "--roster", roster]):
+    if not run([sys.executable, str(SCRIPT_DIR / "build_daily_report.py"), "--pdf", str(path), "--roster", roster]):
         return False
     # 2) 日次の読み物Markdownを更新（DB読み取りのみ）
-    run([sys.executable, "build_daily_md.py", "--date", date])
+    run([sys.executable, str(SCRIPT_DIR / "build_daily_md.py"), "--date", date])
     # 3) 任意: 日次メール送信
     if do_send:
-        if run([sys.executable, "send_report.py", "daily", "--date", date]):
+        if run([sys.executable, str(SCRIPT_DIR / "send_report.py"), "daily", "--date", date]):
             log(f"  [送信] 日次メール {date}")
     log(f"[完了] {path.name}")
     return True
