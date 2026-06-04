@@ -70,6 +70,25 @@ def is_target(name: str) -> bool:
     return date_from_filename(n) is not None
 
 
+def class_from_filename(name: str) -> str | None:
+    """ファイル名からクラスを返す（きいちご/どんぐり）。判別不能なら None。"""
+    n = Path(name).name
+    if "きいちご" in n:
+        return "きいちご"
+    if "どんぐり" in n:
+        return "どんぐり"
+    return None
+
+
+def group_key(name: str) -> tuple[str, str] | None:
+    """重複スキャン判定用のグループキー (日付, クラス)。
+    1クラス=1日1冊が前提なので、同じ(日付,クラス)のPDFは同じ連絡帳の重複とみなす
+    （全角スペース版/アンダースコア版/_001付き 等の別名重複を1冊に束ねる）。"""
+    d = date_from_filename(name)
+    c = class_from_filename(name)
+    return (d, c) if (d and c) else None
+
+
 def load_state() -> dict:
     if STATE_FILE.exists():
         try:
@@ -147,8 +166,28 @@ def process_file(path: Path, roster: str, do_send: bool) -> bool:
 def scan_once(watch_dir: Path, roster: str, stable_wait: float, do_send: bool, state: dict) -> int:
     processed = 0
     candidates = [p for p in sorted(watch_dir.glob("*.pdf")) if is_target(p.name)]
+    # 重複スキャン対策: 同じ(日付,クラス)は1冊だけ処理する。
+    # 既に取込済み(done)のグループを集めておき、後から来た別名の重複は取り込まない。
+    # 順序に依存しない（先に取り込めた方が正、後発の重複はスキップ）。
+    handled_groups = {
+        group_key(name) for name, rec in state.items()
+        if rec.get("status") == "done" and group_key(name)
+    }
     for path in candidates:
         try:
+            g = group_key(path.name)
+            # 同じ(日付,クラス)を既に取り込んでいて、このファイル自身は未取込なら重複スキップ
+            if g and g in handled_groups and state.get(path.name, {}).get("status") != "done":
+                if path.name not in state:
+                    log(f"[重複スキップ] {path.name}（{g[0]} {g[1]} は既に取込済み＝同じ連絡帳の重複スキャン）")
+                    state[path.name] = {
+                        "size": path.stat().st_size,
+                        "status": "duplicate",
+                        "duplicate_of_group": f"{g[0]}/{g[1]}",
+                        "updated_at": dt.datetime.now().isoformat(timespec="seconds"),
+                    }
+                    save_state(state)
+                continue
             if not should_process(path, state):
                 continue
             if not is_stable(path, stable_wait):
@@ -167,6 +206,8 @@ def scan_once(watch_dir: Path, roster: str, stable_wait: float, do_send: bool, s
             save_state(state)
             if ok:
                 processed += 1
+                if g:
+                    handled_groups.add(g)  # 以降このグループ（同日同クラス）は取り込まない
             elif attempts >= MAX_ATTEMPTS:
                 log(f"  [打ち切り] {path.name} は {MAX_ATTEMPTS} 回失敗。以降スキップします。")
         except Exception as exc:
