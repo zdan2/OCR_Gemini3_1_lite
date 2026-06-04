@@ -128,6 +128,9 @@ def process_file(path: Path, roster: str, do_send: bool) -> bool:
     # 1) 本体パイプライン: PDF → 抽出 → 照合 → DB → 日次CSV
     if not run([sys.executable, str(SCRIPT_DIR / "build_daily_report.py"), "--pdf", str(path), "--roster", roster]):
         return False
+    # 1.4) 別名辞書(alias.json)を既存の要確認行に再適用。alias.json を直せば、過去の
+    #      要確認行も次スキャン時に自動で確定される（aliasで確定できるものだけ・安全側）。
+    run([sys.executable, str(SCRIPT_DIR / "reapply_aliases.py"), "--roster", roster])
     # 1.5) 手動補正の再適用（/data/corrections.json があれば）。再OCRで上書きされた氏名を再確定し、
     #      日次CSVも再生成する。ファイルが無ければ無処理なので常に呼んでよい。
     run([sys.executable, str(SCRIPT_DIR / "apply_corrections.py"), "--roster", roster])

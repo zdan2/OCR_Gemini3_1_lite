@@ -155,6 +155,14 @@ sudo docker exec renrakucho python /app/send_report.py monthly --month 2026-06
 alias.json を直したら、リポジトリ側にも同じ変更を入れて push しておくと再構築しても消えない。
 （部分一致で拾うので、短いキーは他児童と衝突しないか名簿で確認してから足す）
 
+> ⚠ **alias.json はOCR取り込み時にしか参照されない**ので、直しても**既にDBに入っている過去の
+> 要確認行は自動では直らない**。過去分にも反映したいときは次を実行する（aliasで確定できるものだけ・安全側）：
+> ```bash
+> sudo docker exec renrakucho python /app/reapply_aliases.py --dry-run   # 直る予定を確認
+> sudo docker exec renrakucho python /app/reapply_aliases.py             # 反映（自動バックアップ＋CSV再生成）
+> ```
+> watcher は取り込みのたびに reapply_aliases も自動で呼ぶので、**alias.json を更新すれば次スキャンで過去分にも反映**される。
+
 ---
 
 ## よくある詰まり
@@ -175,6 +183,10 @@ alias.json を直したら、リポジトリ側にも同じ変更を入れて pu
 # 点検
 sudo docker exec renrakucho python /app/review_queue.py --month 2026-06
 sudo docker exec renrakucho python /app/review_queue.py --month 2026-06 --template
+
+# alias.json を更新したら過去の要確認にも反映（recurring誤読向け）
+sudo docker exec renrakucho python /app/reapply_aliases.py --dry-run
+sudo docker exec renrakucho python /app/reapply_aliases.py
 
 # 補正ファイル準備（初回）
 sudo touch /mnt/main/renrakucho/data/corrections.json
