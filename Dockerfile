@@ -5,11 +5,16 @@ FROM python:3.13-slim
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
-    TZ=Asia/Tokyo
+    TZ=Asia/Tokyo \
+    BROWSER_PATH=/usr/bin/chromium
 
 # tzdata: ログ・日付の Asia/Tokyo 表示用
+# poppler-utils: pdf2image 用
+# chromium + fonts-ipafont-gothic: send_report.py の月次PDF生成(html_to_pdf)用。
+#   フォントが無いと日本語が豆腐(□)になるため日本語ゴシックを同梱する。
 RUN apt-get update \
- && apt-get install -y --no-install-recommends tzdata poppler-utils \
+ && apt-get install -y --no-install-recommends \
+      tzdata poppler-utils chromium fonts-ipafont-gothic \
  && rm -rf /var/lib/apt/lists/* \
  && ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
  && echo "Asia/Tokyo" > /etc/timezone

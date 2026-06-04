@@ -128,7 +128,10 @@ def process_file(path: Path, roster: str, do_send: bool) -> bool:
     # 1) 本体パイプライン: PDF → 抽出 → 照合 → DB → 日次CSV
     if not run([sys.executable, str(SCRIPT_DIR / "build_daily_report.py"), "--pdf", str(path), "--roster", roster]):
         return False
-    # 2) 日次の読み物Markdownを更新（DB読み取りのみ）
+    # 1.5) 手動補正の再適用（/data/corrections.json があれば）。再OCRで上書きされた氏名を再確定し、
+    #      日次CSVも再生成する。ファイルが無ければ無処理なので常に呼んでよい。
+    run([sys.executable, str(SCRIPT_DIR / "apply_corrections.py"), "--roster", roster])
+    # 2) 日次の読み物Markdownを更新（DB読み取りのみ・補正後の値で）
     run([sys.executable, str(SCRIPT_DIR / "build_daily_md.py"), "--date", date])
     # 3) 任意: 日次メール送信
     if do_send:

@@ -94,7 +94,8 @@ def html_to_pdf(html: str) -> bytes:
         src = tmp / "in.html"
         out = tmp / "out.pdf"
         src.write_text(html, encoding="utf-8")
-        cmd = [browser, "--headless", "--disable-gpu", "--no-pdf-header-footer",
+        # --no-sandbox: Linuxコンテナ(root実行)のchromiumは必須。Windows Edge/Chromeでは無害。
+        cmd = [browser, "--headless", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer",
                f"--print-to-pdf={out}", src.as_uri()]
         r = subprocess.run(cmd, capture_output=True, timeout=120)
         if not out.exists():
