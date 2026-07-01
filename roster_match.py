@@ -92,11 +92,48 @@ def month_sheet_for_date(scan_date: dt.date) -> str:
     return f"{scan_date.month}月"
 
 
+def _fiscal_pos(month: int) -> int:
+    """年度内の順序（4月=0 … 3月=11）。月シートの新旧比較に使う。"""
+    return (month - 4) % 12
+
+
+def resolve_month_sheet(month_sheet: str, sheetnames: list[str]) -> Optional[str]:
+    """希望の月シートが無い場合、年度順で「直近の既存月シート」を代用として返す。
+    名簿は月ごとにシートを足していく運用のため、新しい月のシートが未追加のうちに
+    スキャンが来ると照合不能で全員要確認になる。0〜1歳クラスは月途中の入退園が
+    少ないので、直近月の名簿で代用するのが実用的（入園月ズレのリスクは警告で補う）。
+
+    戻り値: 代用シート名。月シートが1枚も無ければ None。
+    選び方: 希望月以前で最も新しい月（年度順）。それも無ければ最も古い既存月。"""
+    if month_sheet in sheetnames:
+        return month_sheet
+    m = re.fullmatch(r"(\d{1,2})月", month_sheet)
+    if not m or not (1 <= int(m.group(1)) <= 12):
+        return None
+    want = _fiscal_pos(int(m.group(1)))
+    months = []
+    for s in sheetnames:
+        mm = re.fullmatch(r"(\d{1,2})月", str(s).strip())
+        if mm and 1 <= int(mm.group(1)) <= 12:
+            months.append((_fiscal_pos(int(mm.group(1))), str(s).strip()))
+    if not months:
+        return None
+    months.sort()
+    prev = [t for t in months if t[0] <= want]
+    return (prev[-1] if prev else months[0])[1]
+
+
 def load_roster(xlsx_path: str | Path, month_sheet: str) -> list[Child]:
-    """指定月シートから、きいちご・どんぐりの2クラスを抽出する。左カラムのみ走査。"""
+    """指定月シートから、きいちご・どんぐりの2クラスを抽出する。左カラムのみ走査。
+    月シートが未追加の場合は直近の既存月シートで代用する（警告表示）。"""
     wb = openpyxl.load_workbook(xlsx_path, data_only=True)
     if month_sheet not in wb.sheetnames:
-        raise ValueError(f"シートが見つかりません: {month_sheet} (在: {wb.sheetnames})")
+        fallback = resolve_month_sheet(month_sheet, wb.sheetnames)
+        if not fallback:
+            raise ValueError(f"シートが見つかりません: {month_sheet} (在: {wb.sheetnames})")
+        print(f"    [名簿代用] {month_sheet} シート未追加 → 直近の {fallback} で代用します"
+              f"（月初は名簿の更新を確認してください）")
+        month_sheet = fallback
     ws = wb[month_sheet]
 
     children: list[Child] = []
