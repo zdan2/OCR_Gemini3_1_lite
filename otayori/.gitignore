@@ -2,7 +2,9 @@
 __pycache__/
 *.pyc
 .env
+tailscale/state/
+# 控え・自作のイラスト・取り込み先の鍵・APIキー（コンテナ）は個人の中身なので git に入れない
+data/
 form_source.json
-
 # ルートの *.txt 除外（連絡帳のOCR出力用）から、AIへの指示ファイルは外す
 !prompts/*.txt

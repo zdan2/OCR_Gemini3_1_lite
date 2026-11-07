@@ -1,0 +1,2 @@
+# cmd.exe は LF の .cmd を読みまちがえる
+*.cmd text eol=crlf

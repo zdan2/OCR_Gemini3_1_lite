@@ -253,9 +253,16 @@ async function fetchLatest(silent){
   $("f-fetch").textContent = "取り込んでいます…";
   try {
     latest = await A.api("/api/form/fetch", {});
+    var linked = Object.keys(blocksBySrc(A.getDoc() || {pages: []})).length > 0;
     var changed = prefs.apply ? applyToDoc() : [];
     renderStatus();
+    var got = Object.keys(latest.sections || {}).length;
     if (changed.length) A.toast("新しい提出を紙面に入れました：" + changed.join("、"));
+    else if (!linked && !silent){
+      A.toast("取り込みました（提出あり " + got + " 区分）。いまの紙面はフォームとつながっていません。" +
+              "「この内容で紙面を作る」を押すと流し込みます。");
+      $("f-build").classList.add("primary");
+    }
     else if (!silent) A.toast("最新を取り込みました。紙面に入れる新しい提出はありませんでした。");
   } catch (e){
     if (!silent) A.toast(e.message);

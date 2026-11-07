@@ -13,6 +13,9 @@
 - 段組みや ブロックの並べ替え・追加・削除をしてよい。レイアウトの指示なら columns の数や w を変える。
 - comments ブロックの items は、先生が入れた文なので消さない。
 - photo ブロックの items も消さない（写真が入っている）。
+- pages[].stickers（先生が好きな所に貼ったイラスト）は、指示がなければ位置も大きさもそのまま残す。
+- 「u_」ではじまるイラストのキーは先生が描いた絵。消したり、ほかのキーに置きかえたりしない。
+- pages[].footer（ページ下の1行。園の住所や電話など）は先生が入れたものなので、指示がなければそのまま残す。無いページに勝手に足さない。
 
 # ブロックの種類と任意の項目は、はじめに作ったときと同じ
 kind: title / head / lead / text / list / schedule / pair / chips / quiz / banner / note / comments / photo / table / illband

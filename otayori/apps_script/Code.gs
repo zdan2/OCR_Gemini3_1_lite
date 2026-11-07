@@ -16,11 +16,38 @@
  */
 const KEY = 'ここを長いでたらめな文字列に変える';
 
+/*
+ * フォームの「スクリプト エディタ」から開いて貼った場合は、空のままでよい。
+ * script.google.com で別に作ったプロジェクトに貼った場合は、フォームの編集画面の URL
+ * （https://docs.google.com/forms/d/〜/edit）を入れる。回答画面の URL（/viewform）では開けない。
+ */
+const FORM_EDIT_URL = '';
+
+function getForm_() {
+  const active = FormApp.getActiveForm();
+  if (active) return active;
+  return FORM_EDIT_URL ? FormApp.openByUrl(FORM_EDIT_URL) : null;
+}
+
+/**
+ * デプロイの前に、エディタの上の関数の選択で checkForm を選んで「実行」する。
+ * 実行ログにフォームの名前と回答の件数が出れば、フォームにつながっている。
+ */
+function checkForm() {
+  const form = getForm_();
+  if (!form) throw new Error('フォームにつながっていません。FORM_EDIT_URL に編集画面の URL を入れてください。');
+  Logger.log('つながっています：' + form.getTitle() + '（回答 ' + form.getResponses().length + ' 件）');
+}
+
 function doGet(e) {
   if (!e || !e.parameter || e.parameter.key !== KEY || KEY.indexOf('ここを') === 0) {
     return json_({ ok: false, error: 'key が違うか、まだ KEY を設定していません。' });
   }
-  const form = FormApp.getActiveForm();
+  const form = getForm_();
+  if (!form) {
+    return json_({ ok: false, error: 'このスクリプトはフォームにつながっていません。' +
+      'スクリプトの FORM_EDIT_URL にフォームの編集画面の URL を入れて、新しいバージョンでデプロイし直してください。' });
+  }
   const tz = Session.getScriptTimeZone();
   const latest = {};
 

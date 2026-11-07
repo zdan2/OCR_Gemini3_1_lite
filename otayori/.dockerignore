@@ -1,0 +1,10 @@
+.venv
+__pycache__
+*.pyc
+.env
+.claude
+data
+tailscale
+run.cmd
+form_source.json
+apps_script

@@ -14,16 +14,13 @@
 <div class="app">
   <header class="topbar">
     <div class="brand"><b>おたより工房</b><span>A3 横・ローカル版</span></div>
-    <span class="hint" id="conn">つないでいます…</span>
+    <button class="connbtn" id="conn" type="button" title="APIキーの設定">つないでいます…</button>
     <div class="spacer"></div>
     <div class="seg" id="viewswitch" style="display:none">
       <button type="button" data-view="work" aria-pressed="true">作業</button>
       <button type="button" data-view="paper" aria-pressed="false">プレビュー</button>
     </div>
-    <label class="hint" for="model">モデル</label>
-    <select id="model" style="width:auto;min-width:170px"></select>
-    <label class="hint" for="effort">考える量</label>
-    <select id="effort" style="width:auto;min-width:86px"></select>
+    <button class="btn" id="btn-undo" type="button" disabled title="ひとつ前の状態にもどす">↶ もどす</button>
     <button class="btn ghost sm" id="btn-reset" type="button">はじめから</button>
     <button class="btn" id="btn-print" type="button">印刷 / PDF</button>
     <button class="btn primary" id="btn-pdf" type="button">画像PDFで保存</button>
@@ -32,12 +29,12 @@
   <div class="main">
     <section class="panel">
       <nav class="tabs" role="tablist">
-        <button type="button" role="tab" id="t-form" aria-selected="true" aria-controls="p-form">フォーム連携</button>
-        <button type="button" role="tab" id="t-concept" aria-selected="false" aria-controls="p-concept">① コンセプト</button>
-        <button type="button" role="tab" id="t-revise" aria-selected="false" aria-controls="p-revise">② 修正</button>
-        <button type="button" role="tab" id="t-comment" aria-selected="false" aria-controls="p-comment">③ コメント</button>
-        <button type="button" role="tab" id="t-layout" aria-selected="false" aria-controls="p-layout">④ 段組み</button>
-        <button type="button" role="tab" id="t-style" aria-selected="false" aria-controls="p-style">⑤ かざり</button>
+        <button type="button" role="tab" id="t-form" aria-selected="true" aria-controls="p-form">フォーム</button>
+        <button type="button" role="tab" id="t-concept" aria-selected="false" aria-controls="p-concept">① つくる</button>
+        <button type="button" role="tab" id="t-style" aria-selected="false" aria-controls="p-style">② かざる</button>
+        <button type="button" role="tab" id="t-revise" aria-selected="false" aria-controls="p-revise">③ なおす</button>
+        <button type="button" role="tab" id="t-comment" aria-selected="false" aria-controls="p-comment">④ こども</button>
+        <button type="button" role="tab" id="t-layout" aria-selected="false" aria-controls="p-layout">⑤ ほぞん</button>
       </nav>
 
       <div class="pane" id="p-form" role="tabpanel" aria-labelledby="t-form">
@@ -72,6 +69,10 @@
       </div>
 
       <div class="pane" id="p-concept" role="tabpanel" aria-labelledby="t-concept" hidden>
+        <div class="banner warnish" id="keybanner" hidden>
+          AIで文章を作るには、はじめに一度だけ「APIキー」を設定します。キーがなくても、文字やイラストの編集・かざり・印刷はできます。
+          <div style="margin-top:8px"><button class="btn primary sm" id="btn-keybanner" type="button">AIにつなぐ</button></div>
+        </div>
         <div class="banner">
           コンセプトを伝えると、AIが<b>文章・イラスト・色・段組みまで決めて</b>組み上げます。
           毎号ちがう形になります。紙の上の文字はクリックで直せます。
@@ -94,10 +95,6 @@
         </div>
         <div class="chips" id="revchips"></div>
         <button class="btn primary" id="btn-revise" type="button">この指示で直す</button>
-        <div class="card">
-          <h4>もどす</h4>
-          <button class="btn sm" id="btn-undo" type="button" disabled>ひとつ戻す</button>
-        </div>
         <div id="revlog" class="note"></div>
       </div>
 
@@ -150,7 +147,7 @@
       </div>
 
       <div class="pane" id="p-layout" role="tabpanel" aria-labelledby="t-layout" hidden>
-        <p class="note">段の数と幅はここで変えられます。ブロックの追加・並べ替え・削除は、紙の上のボタンから。</p>
+        <p class="note">段（たての列）の数と幅を変えられます。囲みの追加・並べ替え・削除は、紙の上のボタンから。</p>
         <div class="structure" id="structure"></div>
         <div class="card">
           <h4>控えの保存と読み込み（data フォルダ）</h4>
@@ -163,67 +160,6 @@
             <button class="btn" id="btn-open" type="button">読み込む</button>
           </div>
           <p class="hint" style="margin:8px 0 0">JSONで残るので、来月はこれを読み込んで直すだけで作れます。</p>
-        </div>
-      </div>
-
-      <div class="pane" id="p-style" role="tabpanel" aria-labelledby="t-style" hidden>
-        <div class="card">
-          <h4>かざりをまとめて入れかえ</h4>
-          <div class="row">
-            <select id="season-pick" style="flex:1 1 130px">
-              <option value="haru">はる</option><option value="tsuyu">つゆ</option>
-              <option value="natsu">なつ</option><option value="aki">あき</option>
-              <option value="fuyu">ふゆ</option><option value="mix">とりまぜ</option>
-            </select>
-            <button class="btn" id="btn-shuffle" type="button">入れかえる</button>
-          </div>
-          <p class="hint" style="margin:8px 0 0">紙の上のイラストを直接クリックすると、1つずつ選べます（72点）。</p>
-        </div>
-        <div class="field">
-          <label class="lbl" for="level">かざりの量</label>
-          <select id="level">
-            <option value="futsu">ふつう</option>
-            <option value="mori">もりもり</option>
-            <option value="max">これ以上ないくらい</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="lbl">色あい</label>
-          <div class="swatches" id="palettes"></div>
-        </div>
-        <div class="row">
-          <div class="field">
-            <label class="lbl" for="tfont">題字の書体</label>
-            <select id="tfont">
-              <option value="pop">はちまるポップ</option>
-              <option value="maru">まるゴシック</option>
-              <option value="tegaki">てがき風</option>
-              <option value="kyo">きょうかしょ体</option>
-            </select>
-          </div>
-          <div class="field">
-            <label class="lbl" for="hfont">見出しの書体</label>
-            <select id="hfont">
-              <option value="maru">まるゴシック</option>
-              <option value="tegaki">てがき風</option>
-              <option value="pop">はちまるポップ</option>
-              <option value="kyo">きょうかしょ体</option>
-            </select>
-          </div>
-        </div>
-        <div class="field">
-          <label class="lbl" for="pattern">背景のもよう</label>
-          <select id="pattern">
-            <option value="dots">みずたま</option>
-            <option value="check">ギンガムチェック</option>
-            <option value="stripe">ストライプ</option>
-            <option value="grid">ほうがん</option>
-            <option value="star">ほし</option>
-            <option value="heart">ハート</option>
-            <option value="flower">こばな</option>
-            <option value="confetti">かみふぶき</option>
-            <option value="plain">むじ</option>
-          </select>
         </div>
         <div class="card">
           <h4>園・クラス</h4>
@@ -246,6 +182,78 @@
           </div>
           <p class="hint" style="margin:8px 0 0">紙の面は印刷物なので、いつも白地のままです。</p>
         </div>
+        <details class="card">
+          <summary>AIのくわしい設定</summary>
+          <div class="row" style="margin-top:10px">
+            <div class="field"><label class="lbl" for="model">モデル</label><select id="model"></select></div>
+            <div class="field" style="flex:0 0 110px"><label class="lbl" for="effort">考える量</label><select id="effort"></select></div>
+          </div>
+          <p class="hint" style="margin:8px 0 0">ふだんは変えなくて大丈夫です。</p>
+          <button class="btn sm" id="btn-key-open" type="button" style="margin-top:10px">APIキーの設定</button>
+        </details>
+      </div>
+
+      <div class="pane" id="p-style" role="tabpanel" aria-labelledby="t-style" hidden>
+        <div class="decohead">
+          <p class="note" style="margin:0">押すとすぐ紙に反映されます。気に入らなければ上の「もどす」で戻せます。</p>
+          <button class="btn primary" id="btn-omakase" type="button">おまかせ</button>
+        </div>
+
+        <section class="dsec">
+          <h4>写真</h4>
+          <div class="photorow">
+            <button class="btn" id="btn-photo" type="button">写真をのせる</button>
+            <p class="hint" style="margin:0">紙の上の写真の枠を押しても、写真ファイルを紙の上へドラッグしても入ります。枠がなければ自動で作ります。</p>
+          </div>
+        </section>
+
+        <section class="dsec" id="stickbox">
+          <h4>イラストを貼る<small>押すか、紙の上へドラッグ</small></h4>
+          <div class="mybar">
+            <button class="btn sm" id="btn-myillust" type="button">＋ 自分の絵を追加</button>
+            <label class="hint chk"><input type="checkbox" id="my-white" checked> 白い背景を消す</label>
+          </div>
+          <div class="stickgrid" id="stickgrid"></div>
+          <p class="hint" style="margin:8px 0 0">貼った絵は、ドラッグで動かす・右下の●で大きさ・上の●でまわす・×ではがす。ダブルクリックで別の絵にかえられます。手描きの絵は、白い紙に描いてスマホで撮った写真をそのまま追加できます。</p>
+        </section>
+
+        <section class="dsec">
+          <h4>ふんいき<small>まとめて着せかえ</small></h4>
+          <div class="moods" id="moods"></div>
+        </section>
+
+        <section class="dsec">
+          <h4>もりもり度</h4>
+          <div class="levels" id="levels"></div>
+        </section>
+
+        <section class="dsec">
+          <h4>いろ</h4>
+          <div class="swatches" id="palettes"></div>
+        </section>
+
+        <section class="dsec">
+          <h4>イラスト<small>季節を押すと入れかわります</small></h4>
+          <div class="seasons" id="seasons"></div>
+          <p class="hint" style="margin:8px 0 0">紙の上のイラストを直接押すと、1つずつ選べます（72点）。</p>
+        </section>
+
+        <section class="dsec">
+          <h4>背景のもよう</h4>
+          <div class="patterns" id="patterns"></div>
+        </section>
+
+        <section class="dsec">
+          <h4>題字の文字</h4>
+          <div class="fonts" id="tfonts"></div>
+          <h4 style="margin-top:12px">見出しの文字</h4>
+          <div class="fonts" id="hfonts"></div>
+        </section>
+
+        <section class="dsec">
+          <h4>ひとつずつかざる</h4>
+          <p class="note" style="margin:0">紙の上の囲みにマウスをのせると「かざる」ボタンが出ます。わく（画用紙・吹き出し・二重わく）、マスキングテープ、かたむき、たかさを選べます。段の横幅は、段と段のあいだの ⇔ をドラッグして変えます。</p>
+        </section>
       </div>
     </section>
 
@@ -269,14 +277,39 @@
   </div>
 </div>
 
-<input type="file" id="photo-in" accept="image/png,image/jpeg,image/webp" multiple hidden>
+<input type="file" id="photo-in" accept="image/*" multiple hidden>
+<input type="file" id="illust-in" accept="image/*" multiple hidden>
 <div id="illpicker" hidden></div>
 <div id="blockpicker" hidden></div>
+<div id="decopicker" hidden></div>
 <div id="overlay" hidden>
   <div class="obox">
     <h3>PDFをつくっています</h3>
     <p id="o-text">1ページ目を描いています…</p>
     <div class="bar"><i id="o-bar"></i></div>
+  </div>
+</div>
+<div id="keydlg" hidden>
+  <div class="kbox" role="dialog" aria-modal="true" aria-labelledby="key-title">
+    <h3 id="key-title">AIにつなぐ</h3>
+    <p class="kstat" id="key-status"></p>
+    <ol class="ksteps">
+      <li><a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic のページ</a>を開いてログインし、「Create Key」でキーを作ります。</li>
+      <li>表示された <code>sk-ant-</code> ではじまる文字を、まるごとコピーします。</li>
+      <li>下の欄に貼りつけて「つなぐ」を押します。</li>
+    </ol>
+    <div class="krow">
+      <input type="password" id="key-in" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+      <button class="btn sm" id="btn-key-show" type="button">表示</button>
+    </div>
+    <p class="kerr" id="key-err" role="alert"></p>
+    <div class="kbtns">
+      <button class="btn ghost sm" id="btn-key-clear" type="button" hidden>キーを消す</button>
+      <div class="spacer"></div>
+      <button class="btn" id="btn-key-close" type="button">とじる</button>
+      <button class="btn primary" id="btn-key-save" type="button">つなぐ</button>
+    </div>
+    <p class="hint" style="margin:12px 0 0">キーはこのパソコンの <code>.env</code> ファイルにだけ保存されます。ほかの人に見せたり、メールで送ったりしないでください。使った分だけ Anthropic から料金がかかります。</p>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
