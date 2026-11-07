@@ -1,0 +1,435 @@
+/* おたより工房 ローカル版
+   画面：左に作業パネル、右にA3横の紙を等倍で組んで縮小表示
+   紙面：6段グリッドではなく「全幅の帯＋可変の段組み」。段の数と幅はAIか先生が決める */
+
+:root{
+  --bg:#e9ecf1; --surface:#fff; --surface-2:#f5f7fa; --surface-3:#eceff5;
+  --ink:#19222e; --ink-2:#55616f; --ink-3:#8b96a5;
+  --line:#dadfe8; --line-2:#c3cad6;
+  --ai:#2f4f8f; --ai-ink:#fff; --ai-soft:#e7edf8; --ai-line:#b9c8e4;
+  --warn:#8d5a16; --bad:#a0392f;
+  --shadow:0 1px 2px rgba(25,34,46,.07), 0 8px 24px rgba(25,34,46,.08);
+  --font-ui:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",system-ui,sans-serif;
+  --font-maru:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Zen Kaku Gothic New",system-ui,sans-serif;
+  --font-tegaki:"Yomogi","Zen Maru Gothic","Hiragino Maru Gothic ProN",cursive,sans-serif;
+  --font-pop:"Hachi Maru Pop","Zen Maru Gothic","Hiragino Maru Gothic ProN",cursive,sans-serif;
+  --font-kyo:"Klee One","Zen Maru Gothic","Hiragino Mincho ProN",serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#14181f; --surface:#1c222c; --surface-2:#232b36; --surface-3:#2a3340;
+  --ink:#e7ebf2; --ink-2:#a3aebd; --ink-3:#76818f;
+  --line:#2f3845; --line-2:#3d4854;
+  --ai:#7ea4e8; --ai-ink:#10151c; --ai-soft:#222c3c; --ai-line:#3b4c6a;
+  --warn:#d6a85e; --bad:#e08b80;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#14181f; --surface:#1c222c; --surface-2:#232b36; --surface-3:#2a3340;
+  --ink:#e7ebf2; --ink-2:#a3aebd; --ink-3:#76818f;
+  --line:#2f3845; --line-2:#3d4854;
+  --ai:#7ea4e8; --ai-ink:#10151c; --ai-soft:#222c3c; --ai-line:#3b4c6a;
+  --warn:#d6a85e; --bad:#e08b80;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:14px;line-height:1.7;
+  font-feature-settings:"palt" 1;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------------- 画面の枠 ---------------- */
+.app{height:100%;display:flex;flex-direction:column;min-height:0}
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface);
+  border-bottom:1px solid var(--line);padding:10px 16px}
+.brand{display:flex;align-items:baseline;gap:9px;min-width:0}
+.brand b{font-family:var(--font-maru);font-weight:700;font-size:17px;letter-spacing:.05em;white-space:nowrap}
+.brand span{color:var(--ink-3);font-size:11.5px;letter-spacing:.09em;white-space:nowrap}
+.spacer{flex:1 1 auto;min-width:0}
+.dot-ok,.dot-ng{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto}
+.dot-ok{background:#3d9970}.dot-ng{background:var(--bad)}
+.seg{display:flex;gap:2px;background:var(--surface-3);border-radius:8px;padding:2px}
+.seg button{border:0;background:transparent;border-radius:6px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.btn{border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:7px 13px;font-size:13px;
+  cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn:hover{background:var(--surface-2)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--ai);border-color:var(--ai);color:var(--ai-ink);font-weight:500}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--ink-2)}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.sm{padding:4px 9px;font-size:12px;border-radius:7px}
+.main{flex:1;display:flex;min-height:0}
+
+/* ---------------- 作業パネル ---------------- */
+.panel{width:440px;flex:0 0 440px;display:flex;flex-direction:column;min-height:0;
+  background:var(--surface);border-right:1px solid var(--line)}
+.tabs{display:flex;border-bottom:1px solid var(--line);padding:0 8px;gap:2px;overflow-x:auto}
+.tabs button{border:0;background:transparent;padding:11px 11px 9px;font-size:13px;cursor:pointer;color:var(--ink-2);
+  border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);font-weight:500;border-bottom-color:var(--ai)}
+.pane{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:14px;min-height:0}
+.pane[hidden]{display:none!important}
+.note{font-size:12.5px;color:var(--ink-2);line-height:1.75}
+.hint{font-size:11.5px;color:var(--ink-3);letter-spacing:.03em}
+.lbl{display:block;font-size:11.5px;letter-spacing:.07em;color:var(--ink-3);margin-bottom:5px;font-weight:500}
+.field{display:flex;flex-direction:column}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>.field{flex:1 1 140px;min-width:0}
+input[type=text],textarea,select{width:100%;min-width:0;font:inherit;font-size:13px;color:var(--ink);
+  background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;resize:vertical}
+textarea{line-height:1.8}
+input[type=text]:focus,textarea:focus,select:focus{border-color:var(--ai-line);background:var(--surface)}
+.card{border:1px solid var(--line);border-radius:var(--r);background:var(--surface-2);padding:13px}
+.card h4{margin:0 0 9px;font-size:12.5px;letter-spacing:.06em;color:var(--ink-2);font-weight:500}
+.banner{border:1px solid var(--ai-line);background:var(--ai-soft);border-radius:var(--r);padding:11px 13px;
+  font-size:12.5px;line-height:1.75}
+.banner.warnish{border-color:#c59a5a;background:rgba(197,154,90,.12)}
+.chat{display:flex;flex-direction:column;gap:11px}
+.bub{max-width:92%;padding:10px 13px;border-radius:13px;font-size:13px;line-height:1.8;white-space:pre-wrap;word-break:break-word}
+.bub.ai{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line);border-bottom-left-radius:4px}
+.bub.me{align-self:flex-end;background:var(--ai);color:var(--ai-ink);border-bottom-right-radius:4px}
+.bub.sys{align-self:center;background:transparent;color:var(--ink-3);font-size:11.5px;text-align:center;padding:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:4px 11px;font-size:12px;
+  cursor:pointer;color:var(--ink-2)}
+.chip:hover{border-color:var(--ai-line);color:var(--ink);background:var(--ai-soft)}
+.thinking{display:inline-flex;gap:4px;align-items:center;color:var(--ink-3);font-size:12.5px}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:bl 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.sw{border:1.5px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 8px;cursor:pointer;
+  text-align:left;display:flex;flex-direction:column;gap:6px}
+.sw[aria-pressed="true"]{border-color:var(--ai);box-shadow:0 0 0 2px var(--ai-soft)}
+.sw .bars{display:flex;gap:3px;height:16px}
+.sw .bars i{flex:1;border-radius:3px}
+.sw small{font-size:11.5px;color:var(--ink-2)}
+.drafts{display:flex;flex-direction:column;gap:9px}
+.draft{border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:11px 12px;font-size:13px;line-height:1.9}
+.draft .bar{display:flex;gap:6px;justify-content:space-between;align-items:center;margin-top:9px}
+.draft .n{font-size:11px;color:var(--ink-3);letter-spacing:.08em}
+.empty{color:var(--ink-3);font-size:12.5px;text-align:center;padding:18px 10px;border:1px dashed var(--line-2);border-radius:var(--r)}
+.subs{width:100%;border-collapse:collapse;font-size:12.5px}
+.subs th,.subs td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+.subs th{font-size:11px;color:var(--ink-3);font-weight:500;letter-spacing:.06em}
+.subs td.n{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink-2)}
+.subs .grp td{background:var(--surface-3);font-size:11px;color:var(--ink-3);letter-spacing:.08em;padding:4px 6px}
+.pill{display:inline-block;font-size:11px;border-radius:999px;padding:1px 9px;white-space:nowrap;border:1px solid}
+.pill.ok{color:#2d6b50;border-color:#9cc9b2;background:rgba(61,153,112,.1)}
+.pill.no{color:var(--ink-3);border-color:var(--line-2)}
+.pill.over{color:#8d5a16;border-color:#d8b27a;background:rgba(197,154,90,.14)}
+.pill.old{color:#7a5aa0;border-color:#c3b1db;background:rgba(155,133,196,.12)}
+.pill.new{color:var(--ai);border-color:var(--ai-line);background:var(--ai-soft)}
+.check{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--ink-2)}
+.structure{display:flex;flex-direction:column;gap:10px}
+.pagebox{border:1px solid var(--line);border-radius:var(--r);padding:11px;background:var(--surface-2)}
+.pagebox>h5{margin:0 0 8px;font-size:12px;letter-spacing:.08em;color:var(--ink-3);font-weight:500}
+.colrow{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12.5px;border-bottom:1px dotted var(--line)}
+.colrow:last-child{border-bottom:0}
+.colrow .nm{flex:1;min-width:0;color:var(--ink-2)}
+.colrow .w{font-variant-numeric:tabular-nums;color:var(--ink-3);width:34px;text-align:right}
+
+/* ---------------- 紙のステージ ---------------- */
+.stage{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+.stagebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--line);
+  background:var(--surface-2)}
+.scroller{flex:1;overflow:auto;padding:18px;display:flex;justify-content:center;align-items:flex-start}
+.frame{position:relative}
+.scaler{position:absolute;top:0;left:0;transform-origin:top left;display:flex;flex-direction:column;gap:22px;width:1587px}
+
+/* ---------------- 紙面 ---------------- */
+.sheet{
+  --accent:#5f9142; --accent2:#d19a2e; --accent3:#c9607c; --tint:#f0f6ea; --tint2:#e2eed6;
+  --paper:#fffefb; --rule:#bcd6a6; --tape:#f2dfa0;
+  --h-font:var(--font-maru); --t-font:var(--font-pop);
+  width:1587px;height:1123px;flex:0 0 auto;background:var(--paper);color:#2c3137;
+  font-family:var(--font-maru);
+  box-shadow:0 1px 2px rgba(0,0,0,.14),0 14px 40px rgba(0,0,0,.16);
+  position:relative;overflow:hidden;padding:46px 58px 38px;display:flex;flex-direction:column;
+  font-size:14.5px;line-height:1.92;letter-spacing:.015em}
+.sheet *{box-sizing:border-box}
+.bgpat{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.85}
+.fr1{position:absolute;inset:11px;border:8px solid var(--tint2);border-radius:34px;pointer-events:none}
+.fr2{position:absolute;inset:21px;border:2.5px dashed var(--accent);border-radius:25px;opacity:.5;pointer-events:none}
+.wavyframe{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.garland{position:absolute;top:22px;left:58px;z-index:1;pointer-events:none}
+.corner{position:absolute;width:62px;height:62px;cursor:pointer;z-index:3}
+.c-tl{top:30px;left:34px;transform:rotate(-14deg)}
+.c-tr{top:30px;right:34px;transform:rotate(13deg)}
+.c-bl{bottom:28px;left:34px;transform:rotate(11deg)}
+.c-br{bottom:28px;right:34px;transform:rotate(-12deg)}
+.edge-ill{position:absolute;width:42px;height:42px;z-index:3}
+.inner{position:relative;z-index:2;display:flex;flex-direction:column;flex:1;min-height:0;gap:14px}
+.pnum{position:absolute;right:60px;bottom:18px;font-size:12px;color:#9aa2ab;letter-spacing:.14em;
+  font-variant-numeric:tabular-nums;z-index:3}
+
+.sheet[data-level="futsu"] .garland,.sheet[data-level="futsu"] .sunburst,
+.sheet[data-level="futsu"] .edge-ill{display:none}
+.sheet:not([data-level="max"]) .edge-ill.extra{display:none}
+.sheet[data-level="mori"] .inner,.sheet[data-level="max"] .inner{padding-top:50px}
+.sheet[data-level="max"] .illband .ill{width:64px;height:64px}
+.sheet[data-level="max"] .corner{width:76px;height:76px}
+.sheet[data-level="max"] .edge-ill{width:48px;height:48px}
+
+.ed{outline:0;white-space:pre-wrap;border-radius:4px}
+.sheet .ed:hover{box-shadow:0 0 0 1px var(--rule)}
+.sheet .ed:focus{box-shadow:0 0 0 2px var(--accent);background:rgba(255,255,255,.75)}
+.capturing .ed{box-shadow:none!important;background:transparent!important}
+.ill{display:inline-block;cursor:pointer;vertical-align:middle}
+.ill svg{width:100%;height:100%;display:block}
+.ill:hover{filter:drop-shadow(0 0 3px var(--accent))}
+.capturing .ill:hover{filter:none}
+.wv{display:block;width:100%;height:9px}
+
+/* 段組み */
+.cols{flex:1;display:flex;gap:22px;min-height:0;align-items:stretch}
+.col{min-width:0;display:flex;flex-direction:column;gap:16px}
+.band-top,.band-bottom{display:flex;flex-direction:column;gap:12px}
+/* 全幅の帯に置いた文章は、そのままだと1行90字になって読めない。行長を詰める */
+.band-top .bodytx,.band-bottom .bodytx,
+.band-top .bl p,.band-bottom .bl p{max-width:790px;margin-left:auto;margin-right:auto}
+
+/* ブロックの外枠 */
+.blk{position:relative;min-width:0}
+.box-paper{background:#fff;border:2.5px dashed var(--rule);border-radius:20px;padding:17px 21px 15px;
+  box-shadow:2px 3px 0 rgba(0,0,0,.045)}
+.box-frame{background:#fff;border:3px double var(--accent);border-radius:14px;padding:16px 21px 14px}
+.box-balloon{background:#fff;border:3px solid var(--accent);border-radius:26px;padding:15px 24px 16px}
+.box-band{background:var(--tint);border-radius:12px;padding:11px 20px}
+.box-plain{padding:2px 2px 0}
+.tape{position:absolute;top:-11px;left:30px;width:68px;height:21px;background:var(--tape);opacity:.8;
+  transform:rotate(-5deg);border-radius:2px;box-shadow:0 1px 0 rgba(0,0,0,.05)}
+.tape.r{left:auto;right:30px;transform:rotate(5deg);background:var(--accent3);opacity:.35}
+.pin{position:absolute;top:-11px;left:50%;margin-left:-10px;width:20px;height:20px;border-radius:50%;
+  background:var(--accent3);box-shadow:inset -3px -3px 0 rgba(0,0,0,.14),0 2px 2px rgba(0,0,0,.2)}
+.fold{position:absolute;right:0;bottom:0;width:26px;height:26px;
+  background:linear-gradient(135deg,rgba(0,0,0,0) 48%,var(--tint2) 50%);border-bottom-right-radius:18px}
+
+.hd{display:flex;align-items:center;gap:11px;margin:0 0 4px}
+.hd .ill{width:38px;height:38px;flex:0 0 auto}
+.hd .tx{font-family:var(--h-font);font-weight:700;font-size:23px;color:var(--accent);letter-spacing:.05em;
+  line-height:1.4;min-width:0;padding:0 6px;border-radius:4px;
+  background:linear-gradient(rgba(0,0,0,0) 56%,var(--tint2) 56%,var(--tint2) 94%,rgba(0,0,0,0) 94%)}
+.bodytx{margin:6px 0 0;font-size:var(--fs,14.5px);line-height:1.92;text-align:justify}
+
+/* 題字 */
+.titlewrap{position:relative;margin:0 8px}
+.titlebox{display:flex;align-items:center;gap:22px;background:var(--tint);border:3px dashed var(--accent);
+  border-radius:46px;padding:16px 40px 18px;position:relative;overflow:hidden}
+.titlebox .ill,.titlebox .tt{position:relative;z-index:1}
+.titlebox .ill.big{width:80px;height:80px;flex:0 0 auto}
+.titlebox .tt{flex:1;min-width:0;text-align:center}
+.titlebox .school{font-size:14.5px;letter-spacing:.2em;color:var(--accent);font-weight:700;margin-bottom:1px}
+.titlebox .ttl{font-family:var(--t-font);font-weight:700;font-size:54px;line-height:1.2;letter-spacing:.05em;
+  color:var(--accent);margin:0;text-wrap:balance;
+  text-shadow:2px 2px 0 #fff,-2px 2px 0 #fff,2px -2px 0 #fff,-2px -2px 0 #fff,0 2px 0 #fff,0 -2px 0 #fff,
+    2px 0 0 #fff,-2px 0 0 #fff,5px 5px 0 var(--tint2)}
+.titlebox .sub{font-size:15px;color:#555d66;margin-top:3px;line-height:1.6}
+.sunburst{position:absolute;inset:0;width:100%;height:100%;opacity:.55;z-index:0}
+.issuebox{position:absolute;right:-6px;top:-16px;background:var(--accent2);color:#fff;border-radius:16px;
+  padding:7px 17px 8px;text-align:center;transform:rotate(5deg);box-shadow:2px 3px 0 rgba(0,0,0,.08);z-index:2}
+.issuebox .i1{font-family:var(--h-font);font-weight:700;font-size:19px;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+.issuebox .i2{font-size:11.5px;opacity:.95;line-height:1.5}
+.teacherbox{position:absolute;left:14px;bottom:-14px;background:#fff;border:2px solid var(--rule);
+  border-radius:999px;padding:3px 15px;font-size:12.5px;color:#5d656d;transform:rotate(-2deg);z-index:2}
+
+/* 2ページ目の見出し */
+.shead{display:flex;align-items:center;gap:16px;margin:0 6px;background:var(--tint);border:3px dashed var(--accent);
+  border-radius:999px;padding:11px 32px 13px;position:relative}
+.shead .ill{width:54px;height:54px;flex:0 0 auto}
+.shead h2{font-family:var(--t-font);font-weight:700;font-size:34px;margin:0;color:var(--accent);
+  letter-spacing:.06em;flex:1;text-align:center}
+.rb{position:absolute;top:50%;margin-top:-17px;width:26px;height:34px;z-index:0}
+.rb.l{left:-20px}.rb.r{right:-20px}
+
+/* 吹き出し */
+.balloonwrap{display:flex;align-items:flex-end;gap:16px}
+.balloonwrap.rev{flex-direction:row-reverse}
+.balloonwrap .who{flex:0 0 auto;width:92px;height:92px;cursor:pointer}
+.balloonwrap .who svg{width:100%;height:100%}
+.balloonwrap .bl{flex:1;min-width:0;position:relative}
+.tail{position:absolute;left:-19px;bottom:18px;width:20px;height:26px}
+.balloonwrap.rev .tail{left:auto;right:-19px;transform:scaleX(-1)}
+.leadh{font-family:var(--h-font);font-weight:700;font-size:20px;margin:0 0 3px;color:var(--accent);letter-spacing:.06em}
+
+/* 予定 */
+.cal{list-style:none;margin:5px 0 0;padding:0;font-variant-numeric:tabular-nums}
+.cal li{display:flex;gap:10px;align-items:center;padding:3px 0;border-bottom:2px dotted var(--rule)}
+.cal li:last-child{border-bottom:0}
+.cal .d{flex:0 0 auto;min-width:56px;padding-left:10px!important;padding-right:10px!important;font-size:calc(var(--fs,14.5px) - 1px)!important;line-height:1.5;background:var(--accent);color:#fff;border-radius:999px;text-align:center;font-weight:700;
+  font-size:13.5px;padding:2px 0;letter-spacing:.02em}
+.cal li:nth-child(even) .d{background:var(--accent2)}
+.cal .l{flex:1;min-width:0;font-size:var(--fs,14px);line-height:1.55}
+
+/* 箇条書き */
+.reqs{list-style:none;margin:5px 0 0;padding:0;display:flex;flex-direction:column;gap:9px}
+.reqs li{display:flex;gap:9px;font-size:var(--fs,14px);line-height:1.85}
+.reqs li .mk{flex:0 0 auto;display:inline-block;width:21px;height:21px;margin-top:4px}
+.reqs li .mk svg{width:100%;height:100%;display:block}
+.reqs li .ed{flex:1;min-width:0}
+
+/* ラベル＋値 */
+.pairs{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+.pairs .one{display:flex;gap:11px;align-items:center;font-size:14.5px}
+.pairs .k{flex:0 0 72px;font-size:12.5px;letter-spacing:.08em;color:#fff;background:var(--accent3);
+  border-radius:999px;padding:2px 0;text-align:center;font-weight:700}
+.pairs .one:nth-child(even) .k{background:var(--accent)}
+.pairs .v{flex:1;min-width:0;line-height:1.75}
+
+/* ピル */
+.bdays{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px}
+.bday{display:flex;align-items:center;gap:7px;background:var(--tint);border:2px solid var(--rule);
+  border-radius:999px;padding:4px 14px 5px;font-size:14px}
+.bday .bdi{display:inline-block;width:20px;height:20px}
+.bday .bdi svg{width:100%;height:100%;display:block}
+.bday .dt{font-size:12px;color:#fff;background:var(--accent3);border-radius:999px;padding:1px 8px;
+  font-variant-numeric:tabular-nums;font-weight:700}
+
+/* クイズ */
+.quiz{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.quiz .qq,.quiz .aa{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;line-height:1.8}
+.quiz .mk{flex:0 0 auto;width:28px;height:28px;border-radius:50%;color:#fff;font-weight:700;text-align:center;
+  line-height:28px;font-family:var(--h-font);font-size:15px}
+.quiz .qq .mk{background:var(--accent)}
+.quiz .aa .mk{background:var(--accent2)}
+
+/* 帯 */
+.bandtx{display:flex;align-items:center;gap:12px;font-size:15px;line-height:1.7;color:#3f464e}
+.bandtx .ill{width:34px;height:34px;flex:0 0 auto}
+
+/* 表 */
+.tbl{width:100%;border-collapse:collapse;margin-top:7px;font-size:13.5px}
+.tbl th,.tbl td{border:1.5px solid var(--rule);padding:5px 9px;text-align:left}
+.tbl th{background:var(--tint);font-weight:700;color:var(--accent)}
+
+/* 写真 */
+.phwrap{display:flex;gap:13px;margin-top:6px;flex-wrap:wrap}
+.ph{position:relative;background:#fff;border:1px solid #e3e6ea;padding:8px 8px 6px;border-radius:3px;
+  box-shadow:2px 3px 0 rgba(0,0,0,.06);transform:rotate(-1.2deg);flex:1 1 150px;min-width:0}
+.ph:nth-child(even){transform:rotate(1.4deg)}
+.ph .im{width:100%;aspect-ratio:4/3;max-width:100%;background:var(--tint);overflow:hidden;display:flex;
+  align-items:center;justify-content:center;color:var(--accent);font-size:12px;letter-spacing:.1em}
+.ph .im img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .cap{font-size:12px;color:#5f676f;margin-top:6px;line-height:1.6;text-align:center}
+
+/* コメント（色画用紙） */
+.cgrid{display:grid;gap:15px;align-content:start;margin-top:8px}
+.cmt{position:relative;border-radius:14px;padding:15px 16px 13px;min-width:0;box-shadow:2px 3px 0 rgba(0,0,0,.05);
+  border:2px solid rgba(255,255,255,.75)}
+.cmt:nth-child(3n+1){transform:rotate(-.7deg)}
+.cmt:nth-child(3n+3){transform:rotate(.7deg)}
+.cmt .nm{display:flex;align-items:center;gap:8px;font-family:var(--h-font);font-weight:700;font-size:16.5px;
+  color:#3f4650;margin-bottom:4px}
+.cmt .nm .ill{width:26px;height:26px;flex:0 0 auto}
+.cmt .tx{font-size:13.5px;line-height:1.88;color:#3d444c}
+.cmt .ctape{position:absolute;top:-9px;left:50%;margin-left:-28px;width:56px;height:17px;
+  background:rgba(255,255,255,.85);border:1px solid rgba(0,0,0,.06);transform:rotate(-3deg);border-radius:2px}
+
+/* ラベル付きの段落（クラスの ねらい・保育・食事 など） */
+.balloonwrap .bl p{font-size:var(--fs,14.5px)}
+.secparts{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.secpart .k{display:inline-block;font-size:12px;letter-spacing:.08em;color:#fff;background:var(--accent);
+  border-radius:999px;padding:1px 12px;font-weight:700;margin-bottom:3px;font-family:var(--h-font)}
+.secpart:nth-child(3n+2) .k{background:var(--accent2)}
+.secpart:nth-child(3n) .k{background:var(--accent3)}
+.secpart .v{font-size:var(--fs,14px);line-height:1.8;text-align:justify}
+.secpart:not(.aim) .k{margin:0 7px 0 0;vertical-align:1px;padding:0 10px}
+.secpart:not(.aim) .v{display:inline}
+.secpart.aim .v{background:rgba(255,255,255,.72);border:1.5px dashed var(--rule);border-radius:10px;padding:5px 10px}
+
+/* はみ出したままの段（自動縮小でも収まらないとき）。紙には出さない */
+.col.over{outline:3px dashed #d9534f;outline-offset:3px}
+.capturing .col.over{outline:none}
+
+/* イラストの帯 */
+.illband{display:flex;align-items:flex-end;justify-content:space-around;gap:8px;padding:0 10px}
+.illband .ill{width:50px;height:50px}
+.illband .ill:nth-child(odd){transform:rotate(-7deg)}
+.illband .ill:nth-child(even){transform:rotate(6deg) translateY(-3px)}
+
+/* 紙の上の操作ボタン */
+.uirow{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+/* ブロックの中の「＋足す」などは、乗せたときだけ浮かせて出す。紙面の高さを食わないように */
+.blk .uirow{position:absolute;right:12px;bottom:-14px;margin:0;display:none;z-index:6}
+.blk:hover .uirow{display:flex}
+.blk .uirow .uibtn{box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.uibtn{border:1.5px dashed var(--rule);background:#fff;color:var(--accent);border-radius:999px;padding:2px 12px;
+  font-size:12px;cursor:pointer;font-family:var(--font-ui)}
+.uibtn:hover{background:var(--tint)}
+.blkui{position:absolute;top:-12px;right:10px;display:none;gap:4px;z-index:5}
+.blk:hover>.blkui{display:flex}
+.blkui .src{font-size:10.5px;background:#fff;border:1px solid var(--rule);color:var(--accent);
+  border-radius:999px;padding:0 9px;white-space:nowrap;height:23px;line-height:21px;font-family:var(--font-ui)}
+.blkui button{width:23px;height:23px;border-radius:50%;border:1px solid var(--rule);background:#fff;color:#7d858d;
+  font-size:12px;line-height:1;cursor:pointer;padding:0;font-family:var(--font-ui)}
+.blkui button:hover{color:var(--accent);border-color:var(--accent)}
+.del{position:absolute;top:-9px;right:-9px;width:22px;height:22px;border-radius:50%;border:1px solid var(--rule);
+  background:#fff;color:#8a929b;font-size:13px;line-height:1;cursor:pointer;display:none;align-items:center;
+  justify-content:center;padding:0;font-family:var(--font-ui);z-index:4}
+.cmt:hover .del,.ph:hover .del{display:flex}
+.addblk{border:2px dashed var(--rule);background:transparent;color:var(--accent);border-radius:14px;
+  padding:7px;font-size:13px;cursor:pointer;font-family:var(--font-ui);opacity:.5}
+.addblk:hover{opacity:1;background:var(--tint)}
+
+/* イラスト選び */
+#illpicker{position:fixed;z-index:250;background:var(--surface);border:1px solid var(--line-2);border-radius:14px;
+  box-shadow:var(--shadow);width:356px;max-height:60vh;overflow:auto;padding:12px}
+#illpicker[hidden],#blockpicker[hidden]{display:none}
+#illpicker h5{margin:10px 0 6px;font-size:11px;letter-spacing:.1em;color:var(--ink-3);font-weight:500}
+#illpicker h5:first-child{margin-top:0}
+.illgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.illgrid button{border:1px solid transparent;background:var(--surface-2);border-radius:8px;padding:3px;
+  cursor:pointer;aspect-ratio:1}
+.illgrid button:hover{border-color:var(--ai);background:var(--ai-soft)}
+.illgrid svg{width:100%;height:100%;display:block}
+#blockpicker{position:fixed;z-index:250;background:var(--surface);border:1px solid var(--line-2);border-radius:14px;
+  box-shadow:var(--shadow);width:230px;max-height:60vh;overflow:auto;padding:8px}
+#blockpicker button{display:block;width:100%;text-align:left;border:0;background:transparent;border-radius:8px;
+  padding:7px 10px;font-size:13px;cursor:pointer;color:var(--ink)}
+#blockpicker button:hover{background:var(--ai-soft)}
+
+#overlay{position:fixed;inset:0;z-index:300;background:rgba(10,13,18,.72);display:flex;align-items:center;
+  justify-content:center;padding:24px}
+#overlay[hidden]{display:none}
+.obox{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+  padding:24px 26px;max-width:400px;width:100%;text-align:center}
+.obox h3{margin:0 0 7px;font-family:var(--font-maru);font-size:16px}
+.obox p{margin:0;font-size:13px;color:var(--ink-2);line-height:1.8}
+.bar{height:5px;background:var(--surface-3);border-radius:999px;overflow:hidden;margin-top:16px}
+.bar i{display:block;height:100%;background:var(--ai);border-radius:999px;width:0%;transition:width .3s}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:400;background:var(--ink);
+  color:var(--bg);padding:10px 18px;border-radius:999px;font-size:13px;box-shadow:var(--shadow);
+  max-width:min(90vw,520px);text-align:center;white-space:pre-wrap}
+.toast[hidden]{display:none}
+
+@media (max-width:980px){
+  .panel{width:100%;flex:1 1 auto;border-right:0}
+  .main{display:block;height:100%;overflow:auto}
+  .main>.panel,.main>.stage{height:100%}
+  body[data-view="work"] .stage{display:none}
+  body[data-view="paper"] .panel{display:none}
+  .scroller{padding:12px}
+  #viewswitch{display:flex!important}
+}
+
+/* ---------------- 印刷（A3横・実寸） ---------------- */
+@media print{
+  @page{size:A3 landscape;margin:0}
+  html,body{height:auto;background:#fff}
+  .topbar,.panel,.stagebar,#illpicker,#blockpicker,#overlay,.toast{display:none!important}
+  .app,.main,.stage{display:block;height:auto}
+  .scroller{overflow:visible;padding:0;display:block}
+  .frame{width:auto!important;height:auto!important}
+  .scaler{position:static;transform:none!important;width:auto;gap:0;display:block}
+  .sheet{box-shadow:none;margin:0;page-break-after:always;break-after:page}
+  .sheet:last-child{page-break-after:auto;break-after:auto}
+  .sheet[hidden]{display:flex!important}
+  .blkui,.uirow,.del,.addblk{display:none!important}
+  .ed{box-shadow:none!important;background:transparent!important}
+}
