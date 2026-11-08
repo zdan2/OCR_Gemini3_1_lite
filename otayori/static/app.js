@@ -1437,6 +1437,21 @@ async function compose(){
   $("revchips").appendChild(b);
 });
 $("btn-revise").addEventListener("click", revise);
+/** フォームから流し込んだブロックの「どの提出を入れたか」（srcTime）を、直す前の紙面から書き戻す。
+    AI が落としたり書きかえたりすると、次の取り込みで直した文がフォームの文に戻されてしまうため。 */
+function keepSrcTime(before, after){
+  var times = {};
+  function each(d, fn){
+    (d.pages || []).forEach(function (pg){
+      function walk(list){ (list || []).forEach(function (b){ if (b && b.src) fn(b); }); }
+      walk(pg.top); walk(pg.bottom);
+      (pg.columns || []).forEach(function (c){ walk(c.blocks); });
+    });
+  }
+  each(before, function (b){ times[b.src] = b.srcTime || ""; });
+  each(after, function (b){ if (b.src in times) b.srcTime = times[b.src]; });
+}
+
 async function revise(){
   var ins = $("rev").value.trim();
   if (!ins || busy) return;
@@ -1446,7 +1461,9 @@ async function revise(){
       doc: doc, instruction: ins, illustrations: illListForPrompt()
     }, aiOpts()));
     pushHistory();
+    var old = doc;
     doc = normalize(d);
+    keepSrcTime(old, doc);
     render(); saveLocal();
     $("revlog").textContent = "直しました：" + ins;
     $("rev").value = "";

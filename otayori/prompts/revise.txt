@@ -16,10 +16,15 @@
 - pages[].stickers（先生が好きな所に貼ったイラスト）は、指示がなければ位置も大きさもそのまま残す。
 - 「u_」ではじまるイラストのキーは先生が描いた絵。消したり、ほかのキーに置きかえたりしない。
 - pages[].footer（ページ下の1行。園の住所や電話など）は先生が入れたものなので、指示がなければそのまま残す。無いページに勝手に足さない。
+- ブロックにある src と srcTime は、フォームの提出とつながっている印。値を変えず、そのブロックに付けたまま残す。
+  ブロックの種類を変えたり、ほかの段へ動かしたりしても、src と srcTime はそのブロックから外さない。
+  ほかのブロックに付けかえたり、新しく足したブロックに付けたりはしない。
 
 # ブロックの種類と任意の項目は、はじめに作ったときと同じ
-kind: title / head / lead / text / list / schedule / pair / chips / quiz / banner / note / comments / photo / table / illband
-任意: box（paper/balloon/frame/plain/band）、tape（tape/taper/pin/none）、tilt（-1.5〜1.5）
+kind: title / head / lead / text / section / list / schedule / pair / chips / quiz / banner / note / comments / photo / table / illband
+- section：ラベル付きの段落を並べた記事（クラスのたよりなど）。{"kind":"section","heading":"みだし","ill":"キー","parts":[{"k":"ラベル","v":"文章"}]}
+  parts の k（「ねらい」「様子」など）は先生がフォームで書いた区切りなので、指示がなければ変えない。
+任意: box（paper/balloon/frame/plain/band）、tape（tape/taper/pin/none）、tilt（-1.5〜1.5）、bg（見出しの色。いまの値を残す）
 
 # 文章の決まり
 - ていねいだが固すぎない「です・ます」調。
