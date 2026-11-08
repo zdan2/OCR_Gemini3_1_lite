@@ -338,12 +338,20 @@ def api_revise(payload):
         "INSTRUCTION": instruction,
         "ILLUSTRATIONS": payload.get("illustrations") or "",
     })
-    return ask_json(
+    out = ask_json(
         [{"role": "user", "content": prompt}],
         model=pick_model(payload),
         effort=pick_effort(payload),
         max_tokens=24000,
     )
+    # 「直したのに変わらない」ときに確かめられるよう、最後の1回だけ控えておく（data/ は git に入らない）
+    try:
+        (DATA / "last_revise.json").write_text(
+            json.dumps({"instruction": instruction, "before": doc, "after": out}, ensure_ascii=False),
+            encoding="utf-8")
+    except OSError:
+        pass
+    return out
 
 
 def api_comment(payload):
@@ -432,7 +440,7 @@ def api_kotoba(payload):
 
 
 # data/ には控えのほかに、取り込み先の設定（form_source.json）も置いている
-NOT_SAVED_DOCS = {"form_source"}
+NOT_SAVED_DOCS = {"form_source", "last_revise"}
 
 
 def saved_names():
