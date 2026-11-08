@@ -349,28 +349,102 @@ $("scaler").addEventListener("click", function (e){
 
 /* ---------------- イラスト選び ---------------- */
 /** 分類ごとのイラストの一覧。attr は押したときに読む属性。sticker なら紙へドラッグでき、自作の絵は消せる */
+/* ---------------- イラストの一覧（検索・分類・最近使ったもの） ---------------- */
+var ILL_RECENT_KEY = "otayori-recent-ill";
+function recentIlls(){
+  try {
+    var v = JSON.parse(localStorage.getItem(ILL_RECENT_KEY) || "[]");
+    return Array.isArray(v) ? v.filter(function (k){ return ILL[k]; }) : [];
+  } catch (e){ return []; }
+}
+function noteRecent(k){
+  if (!ILL[k]) return;
+  var r = recentIlls().filter(function (x){ return x !== k; });
+  r.unshift(k);
+  try { localStorage.setItem(ILL_RECENT_KEY, JSON.stringify(r.slice(0, 16))); } catch (e){}
+  pickerDirty = true;
+}
+/** 絵の出どころ。工房で描いた絵・Fluent Emoji・先生が足した絵 */
+function illStyle(k){ return k.indexOf("u_") === 0 ? "mine" : k.indexOf("f_") === 0 ? "fluent" : "kobo"; }
+/** カタカナをひらがなにそろえる。「パンダ」でも「ぱんだ」でも見つかるように */
+function kana(s){
+  return String(s || "").toLowerCase().replace(/[\u30a1-\u30f6]/g, function (c){
+    return String.fromCharCode(c.charCodeAt(0) - 0x60);
+  });
+}
+var illFilter = {};   // 一覧ごとの、いまの絞り込み
+
 function illGridHtml(attr, sticker){
-  var groups = {}, order = [];
+  var groups = {}, order = [], hasMine = false;
   ILL_KEYS.forEach(function (k){
     var g = ILL[k][0];
     if (!groups[g]){ groups[g] = []; order.push(g); }
     groups[g].push(k);
+    if (k.indexOf("u_") === 0) hasMine = true;
   });
-  var h = "";
-  order.forEach(function (g){
-    h += "<h5>" + esc(g) + "</h5><div class='illgrid'>";
-    groups[g].forEach(function (k){
-      var mine = sticker && k.indexOf("u_") === 0;
-      h += (mine ? '<span class="myill">' : "") +
-           '<button type="button" ' + attr + '="' + k + '" title="' + esc(ILL[k][1]) + '"' +
-           (sticker ? ' draggable="true"' : "") + ">" + illSvg(k) + "</button>" +
-           (mine ? '<i class="mydel" data-mydel="' + k + '" title="一覧から消す">×</i></span>' : "");
-    });
-    h += "</div>";
-  });
-  return h;
+  function btn(k){
+    var mine = sticker && k.indexOf("u_") === 0;
+    return (mine ? '<span class="myill">' : "") +
+      '<button type="button" ' + attr + '="' + k + '" title="' + esc(ILL[k][1]) + '"' +
+      ' data-q="' + esc(kana(ILL[k][1] + " " + ILL[k][0] + " " + k)) + '" data-st="' + illStyle(k) + '"' +
+      (sticker ? ' draggable="true"' : "") + ">" + illSvg(k) + "</button>" +
+      (mine ? '<i class="mydel" data-mydel="' + k + '" title="一覧から消す">×</i></span>' : "");
+  }
+  function sec(title, keys, recent){
+    return '<div class="illsec" data-g="' + esc(title) + '"' + (recent ? " data-recent" : "") + "><h5>" + esc(title) +
+           "</h5><div class='illgrid'>" + keys.map(btn).join("") + "</div></div>";
+  }
+  var opts = '<option value="">ぜんぶの絵（' + ILL_KEYS.length + "）</option>" +
+    '<option value="@kobo">工房の絵</option><option value="@fluent">Fluent の絵</option>' +
+    (hasMine ? '<option value="@mine">じぶんの絵</option>' : "") +
+    order.map(function (g){ return '<option value="' + esc(g) + '">' + esc(g) + "</option>"; }).join("");
+  var h = '<div class="illtools"><input type="search" class="illq" placeholder="さがす（くま・ゆき・はみがき）" aria-label="イラストをさがす">' +
+          '<select class="illg" aria-label="分類">' + opts + "</select></div>";
+  var rec = recentIlls();
+  if (rec.length) h += sec("さいきんつかった", rec, true);
+  order.forEach(function (g){ h += sec(g, groups[g], false); });
+  return h + '<p class="illnone hint" hidden>見つかりませんでした。ほかの言葉でさがすか、「AIに描いてもらう」を使ってください。</p>';
 }
-function buildIllPicker(){ $("illpicker").innerHTML = illGridHtml("data-ill", false); }
+
+function filterIll(box){
+  var qEl = box.querySelector(".illq"), gEl = box.querySelector(".illg");
+  if (!qEl || !gEl) return;
+  var q = kana(qEl.value.trim()), g = gEl.value, any = false;
+  illFilter[box.id] = {q: qEl.value, g: g};
+  Array.prototype.forEach.call(box.querySelectorAll(".illsec"), function (sec){
+    var recent = sec.hasAttribute("data-recent"), secG = sec.getAttribute("data-g"), shown = 0;
+    Array.prototype.forEach.call(sec.querySelectorAll("[data-q]"), function (b){
+      var ok = (!q || b.getAttribute("data-q").indexOf(q) >= 0) &&
+               (!g || (g.charAt(0) === "@" ? b.getAttribute("data-st") === g.slice(1) : secG === g));
+      if (recent && (q || g)) ok = false;   // 絞りこんでいるあいだは「さいきん」を出さない
+      (b.closest(".myill") || b).hidden = !ok;
+      if (ok) shown++;
+    });
+    sec.hidden = !shown;
+    if (shown) any = true;
+  });
+  var none = box.querySelector(".illnone");
+  if (none) none.hidden = any;
+}
+function restoreIllFilter(box){
+  var f = illFilter[box.id];
+  if (!f || !box.querySelector(".illq")) return;
+  box.querySelector(".illq").value = f.q;
+  box.querySelector(".illg").value = f.g;
+  filterIll(box);
+}
+["illpicker", "stickgrid"].forEach(function (id){
+  $(id).addEventListener("input", function (e){ if (e.target.classList.contains("illq")) filterIll(this); });
+  $(id).addEventListener("change", function (e){ if (e.target.classList.contains("illg")) filterIll(this); });
+});
+/* 差しかえの小窓は、初めて開くときに作る（絵が多いので、起動を重くしない） */
+var pickerDirty = true;
+function buildIllPicker(){ pickerDirty = true; }
+function fillIllPicker(){
+  $("illpicker").innerHTML = illGridHtml("data-ill", false);
+  restoreIllFilter($("illpicker"));
+  pickerDirty = false;
+}
 function place(box, el){
   box.hidden = false;
   var r = el.getBoundingClientRect(), w = box.offsetWidth, h = box.offsetHeight;
@@ -379,11 +453,18 @@ function place(box, el){
   if (y + h > window.innerHeight - 8) y = Math.max(8, r.top - h - 8);
   box.style.left = x + "px"; box.style.top = y + "px";
 }
-function openIllPicker(el){ pickerPath = el.getAttribute("data-slot"); place($("illpicker"), el); }
+function openIllPicker(el){
+  pickerPath = el.getAttribute("data-slot");
+  if (pickerDirty) fillIllPicker();
+  place($("illpicker"), el);
+  var q = $("illpicker").querySelector(".illq");
+  if (q && window.matchMedia("(pointer: fine)").matches) q.focus();
+}
 $("illpicker").addEventListener("click", function (e){
   var b = e.target.closest("button[data-ill]");
   if (!b || !pickerPath) return;
   pushHistory();
+  noteRecent(b.getAttribute("data-ill"));
   setPath(doc, pickerPath, b.getAttribute("data-ill"));
   this.hidden = true; pickerPath = null;
   render(); saveLocal();
@@ -719,6 +800,7 @@ document.addEventListener("keydown", function (e){
 /* かざるタブのイラスト一覧：押すと貼る、紙へドラッグしても貼れる */
 function renderStickGrid(){
   $("stickgrid").innerHTML = illGridHtml("data-stick", true);
+  restoreIllFilter($("stickgrid"));
 }
 $("stickgrid").addEventListener("click", function (e){
   var del = e.target.closest("[data-mydel]");
@@ -726,6 +808,7 @@ $("stickgrid").addEventListener("click", function (e){
   var b = e.target.closest("button[data-stick]");
   if (!b) return;
   var spot = visibleSpot();
+  noteRecent(b.getAttribute("data-stick"));
   addSticker(b.getAttribute("data-stick"), spot.pi, spot.x, spot.y);
   toast("貼りました。ドラッグで動かせます。");
 });
@@ -740,6 +823,7 @@ function dropSticker(e){
   var k = e.dataTransfer.getData(ILL_MIME);
   var sheet = e.target.closest && e.target.closest(".sheet");
   if (!k || !sheet) return;
+  noteRecent(k);
   var r = sheet.getBoundingClientRect(), f = r.width / PAGE_W;
   addSticker(k, allSheets().indexOf(sheet), (e.clientX - r.left) / f, (e.clientY - r.top) / f);
 }
@@ -828,6 +912,65 @@ async function removeMyIllust(k){
   try { refreshIllust((await api("/api/illust/del", {id: k.slice(2)})).items); toast("消しました。"); }
   catch (e){ toast(e.message); }
 }
+/* ---------------- AIに描いてもらう ----------------
+   3案を見せ、選んだ案を PNG にして「じぶんの絵」に保存する（貼る・題字に使う・控えに残る、が今のまま使える）。 */
+var drawing = false;
+function svgToPng(svg, size){
+  return new Promise(function (resolve, reject){
+    var url = URL.createObjectURL(new Blob([svg], {type: "image/svg+xml"}));
+    var img = new Image();
+    img.onload = function (){
+      var c = document.createElement("canvas");
+      c.width = c.height = size;
+      c.getContext("2d").drawImage(img, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL("image/png"));
+    };
+    img.onerror = function (){ URL.revokeObjectURL(url); reject(new Error("svg")); };
+    img.src = url;
+  });
+}
+async function aiDraw(){
+  var what = $("ai-draw-in").value.trim(), out = $("ai-draw-out");
+  if (!what){ toast("どんな絵がほしいか書いてください。"); $("ai-draw-in").focus(); return; }
+  if (drawing) return;
+  drawing = true; $("ai-draw-go").disabled = true;
+  out.innerHTML = '<div class="note"><span class="thinking"><span class="dot"></span><span class="dot"></span>' +
+                  '<span class="dot"></span>描いています（30秒ほど）</span></div>';
+  try {
+    var r = await api("/api/illust/draw", Object.assign({what: what}, aiOpts()));
+    out.innerHTML = "";
+    (r.svgs || []).forEach(function (svg, i){
+      var d = document.createElement("div");
+      d.className = "cand";
+      d.innerHTML = svg + '<button class="btn sm" type="button">使う</button>';   // サーバで図形だけに組み直してある
+      d.querySelector("button").addEventListener("click", async function (){
+        var btn = this;
+        btn.disabled = true; btn.textContent = "保存しています…";
+        try {
+          var src = await svgToPng(svg, MY_MAX);
+          var res = await api("/api/illust/add", {name: what.slice(0, 20), src: src});
+          refreshIllust(res.items);
+          out.innerHTML = "";
+          $("ai-draw-in").value = "";
+          toast("「" + what.slice(0, 20) + "」を追加しました。一覧のいちばん上「" + MY_GROUP + "」にあります。");
+        } catch (e){
+          btn.disabled = false; btn.textContent = "使う";
+          toast(e.message || "保存できませんでした。");
+        }
+      });
+      out.appendChild(d);
+    });
+  } catch (e){
+    out.innerHTML = "";
+    toast(e.message);
+  } finally {
+    drawing = false; $("ai-draw-go").disabled = false;
+  }
+}
+$("ai-draw-go").addEventListener("click", aiDraw);
+$("ai-draw-in").addEventListener("keydown", function (e){ if (e.key === "Enter"){ e.preventDefault(); aiDraw(); } });
+
 $("btn-myillust").addEventListener("click", function (){ $("illust-in").click(); });
 $("illust-in").addEventListener("change", function (){
   var files = Array.prototype.slice.call(this.files || []);

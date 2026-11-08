@@ -663,6 +663,80 @@ def api_form_fetch(_payload):
     return data
 
 
+# ---------------------------------------------------------------- AIに描いてもらう絵
+# AIが返した SVG は、図形と塗りだけに組み直してから画面へ返す（スクリプトや外への参照は残さない）。
+
+_SVG_NS = "{http://www.w3.org/2000/svg}"
+_SVG_TAGS = {"svg", "g", "path", "circle", "ellipse", "rect", "line", "polyline", "polygon"}
+_SVG_ATTRS = {"d", "cx", "cy", "r", "rx", "ry", "x", "y", "x1", "y1", "x2", "y2", "width", "height", "points",
+              "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "opacity",
+              "fill-opacity", "stroke-opacity", "fill-rule", "transform"}
+_SVG_VALUE = re.compile(r"^[#A-Za-z0-9 ,.\-()%]*$")
+
+
+def clean_svg(text: str) -> str | None:
+    """許した要素と属性だけで SVG を組み直す。読めなければ None。"""
+    import xml.etree.ElementTree as ET
+    text = (text or "").strip()
+    if not text.startswith("<svg") or len(text) > 60000 or "<!" in text:
+        return None
+    try:
+        root = ET.fromstring(text)
+    except ET.ParseError:
+        return None
+    count = 0
+
+    def walk(el):
+        nonlocal count
+        tag = el.tag.replace(_SVG_NS, "")
+        if tag not in _SVG_TAGS:
+            return ""
+        count += 1
+        attrs = []
+        for k, v in el.attrib.items():
+            k = k.replace(_SVG_NS, "")
+            v = v.strip()
+            if k in _SVG_ATTRS and _SVG_VALUE.match(v) and "url" not in v.lower():
+                attrs.append(f'{k}="{v}"')
+        inner = "".join(walk(c) for c in el)
+        if tag == "svg":
+            return inner
+        a = (" " + " ".join(attrs)) if attrs else ""
+        return f"<{tag}{a}>{inner}</{tag}>" if inner else f"<{tag}{a}/>"
+
+    body = walk(root)
+    if count < 2 or not body:
+        return None
+    vb = root.attrib.get("viewBox", "0 0 48 48").split()
+    try:
+        x, y, w, h = (float(n) for n in vb)
+    except ValueError:
+        x, y, w, h = 0.0, 0.0, 48.0, 48.0
+    if w <= 0 or h <= 0:
+        return None
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{x:g} {y:g} {w:g} {h:g}">{body}</svg>')
+
+
+def api_illust_draw(payload):
+    what = re.sub(r"\s+", " ", str(payload.get("what") or "")).strip()
+    if not what:
+        raise RuntimeError("どんな絵がほしいか書いてください。")
+    if len(what) > 80:
+        raise RuntimeError("80字までにしてください。")
+    prompt = fill(read_prompt("draw"), {"WHAT": what})
+    data = ask_json(
+        [{"role": "user", "content": prompt}],
+        model=pick_model(payload),
+        effort=pick_effort(payload, "high"),
+        max_tokens=16000,
+    )
+    raw = data.get("svgs") if isinstance(data, dict) else data
+    svgs = [s for s in (clean_svg(str(x)) for x in (raw or [])[:4]) if s]
+    if not svgs:
+        raise RuntimeError("うまく描けませんでした。言いかえて、もう一度お試しください。")
+    return {"svgs": svgs}
+
+
 ROUTES = {
     "/api/config": api_config,
     "/api/form/config": api_form_config,
@@ -672,6 +746,7 @@ ROUTES = {
     "/api/illust/list": api_illust_list,
     "/api/illust/add": api_illust_add,
     "/api/illust/del": api_illust_del,
+    "/api/illust/draw": api_illust_draw,
     "/api/chat": api_chat,
     "/api/compose": api_compose,
     "/api/revise": api_revise,

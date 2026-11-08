@@ -259,6 +259,13 @@
             <button class="btn sm" id="btn-myillust" type="button">＋ 自分の絵を追加</button>
             <label class="hint chk"><input type="checkbox" id="my-white" checked> 白い背景を消す</label>
           </div>
+          <div class="aidraw">
+            <div class="aidraw-row">
+              <input type="text" id="ai-draw-in" maxlength="80" placeholder="AIに描いてもらう（例：玉入れをするこども）">
+              <button class="btn sm primary" id="ai-draw-go" type="button">描く</button>
+            </div>
+            <div class="aidraw-out" id="ai-draw-out"></div>
+          </div>
           <div class="stickgrid" id="stickgrid"></div>
           <p class="hint" style="margin:8px 0 0">貼った絵は、ドラッグで動かす・右下の●で大きさ・上の●でまわす・×ではがす。ダブルクリックで別の絵にかえられます。手描きの絵は、白い紙に描いてスマホで撮った写真をそのまま追加できます。</p>
         </section>
@@ -363,6 +370,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="/static/illust.js"></script>
+<script src="/static/illust_fluent.js"></script>
 <script src="/static/render.js"></script>
 <script src="/static/app.js"></script>
 <script src="/static/form.js"></script>
