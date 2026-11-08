@@ -274,6 +274,7 @@ $("scaler").addEventListener("input", function (e){
   var el = e.target.closest && e.target.closest("[contenteditable][data-path]");
   if (!el) return;
   setPath(doc, el.getAttribute("data-path"), el.innerText);
+  syncMarks(el);
   clearTimeout(saveTimer); saveTimer = setTimeout(saveLocal, 600);
   clearTimeout(fitTimer); fitTimer = setTimeout(autofit, 700);
 });
@@ -285,6 +286,179 @@ $("scaler").addEventListener("paste", function (e){
   if (el.hasAttribute("data-oneline")) t = t.replace(/\n+/g, "　");
   document.execCommand("insertText", false, t);
 });
+/* ---------------- 文の一部の字（えらんだ所だけ、字の形・大きさ・色・太字・マーカー） ----------------
+   画面の欄を読んで「文字」と「どこにどの印があるか」を取り出す。<br> と段落は改行として数える。
+   at に {node, offset} を渡すと、その位置が何文字目かも返す。 */
+function readEd(el, at){
+  var text = "", runs = [], pos = {};
+  function styleOf(node){
+    var sp = node.parentElement && node.parentElement.closest(".mk");
+    if (!sp || !el.contains(sp)) return null;
+    var o = {};
+    O.MARK_KEYS.forEach(function (k){ var v = sp.getAttribute("data-m" + k); if (v != null && v !== "") o[k] = k === "k" ? parseFloat(v) : (k === "b" ? 1 : v); });
+    return Object.keys(o).length ? o : null;
+  }
+  function mark(node, n, i){ (at || []).forEach(function (a, ai){ if (a.node === node && a.offset === i) pos[ai] = n; }); }
+  function walk(n){
+    var kids = n.childNodes;
+    for (var i = 0; i < kids.length; i++){
+      mark(n, text.length, i);
+      var c = kids[i];
+      if (c.nodeType === 3){
+        var st = styleOf(c), s = text.length;
+        (at || []).forEach(function (a, ai){ if (a.node === c) pos[ai] = s + Math.min(a.offset, c.data.length); });
+        text += c.data;
+        if (st && c.data) runs.push(Object.assign({s: s, e: text.length}, st));
+      } else if (c.nodeName === "BR"){
+        text += "\n";
+      } else if (c.nodeType === 1){
+        if (/^(DIV|P)$/.test(c.nodeName) && text && !/\n$/.test(text)) text += "\n";
+        walk(c);
+      }
+    }
+    mark(n, text.length, kids.length);
+  }
+  walk(el);
+  return {text: text, runs: runs, pos: pos};
+}
+function sameStyle(a, b){
+  return O.MARK_KEYS.every(function (k){ return (a && a[k] != null ? a[k] : null) === (b && b[k] != null ? b[k] : null); });
+}
+/** 1文字ずつの見た目の並びを、まとまり（印）にもどす */
+function packRuns(text, chars){
+  var runs = [], cur = null;
+  for (var i = 0; i <= text.length; i++){
+    var st = i < text.length ? chars[i] : null;
+    if (cur && sameStyle(cur.st, st)){ cur.e = i + 1; continue; }
+    if (cur){ runs.push(Object.assign({s: cur.s, e: cur.e, t: text.slice(cur.s, cur.e)}, cur.st)); cur = null; }
+    if (st && Object.keys(st).length) cur = {s: i, e: i + 1, st: st};
+  }
+  return runs;
+}
+function charsOf(text, runs){
+  var chars = new Array(text.length);
+  runs.forEach(function (r){
+    var st = {};
+    O.MARK_KEYS.forEach(function (k){ if (r[k] != null) st[k] = r[k]; });
+    for (var i = r.s; i < r.e && i < text.length; i++) chars[i] = st;
+  });
+  return chars;
+}
+/** 手で打ちかえたあと、印を画面の今の形にそろえる */
+function syncMarks(el){
+  var path = el.getAttribute("data-path");
+  var r = readEd(el);
+  if (r.text !== el.innerText) return;            // 読み方がずれたときは、言葉で付け直す仕組みにまかせる
+  if (!r.runs.length && !O.getMarks(doc, path)) return;
+  O.setMarks(doc, path, packRuns(r.text, charsOf(r.text, r.runs)));
+}
+
+var markSel = null;   // {el, path, s, e}
+var MARK_SIZES = [[0.8, "小"], [1, "ふつう"], [1.3, "大"], [1.7, "特大"]];
+var MARKERS = [["#fff176", "きいろ"], ["#f8bbd0", "ピンク"], ["#b3e5fc", "みずいろ"], ["#c8e6c9", "みどり"]];
+function currentSel(){
+  var sel = window.getSelection();
+  if (!sel || !sel.rangeCount || sel.isCollapsed) return null;
+  var rg = sel.getRangeAt(0);
+  function edOf(n){ var e = n.nodeType === 1 ? n : n.parentElement; return e && e.closest("#scaler [contenteditable][data-path]"); }
+  var el = edOf(rg.startContainer);
+  if (!el || el !== edOf(rg.endContainer)) return null;
+  var r = readEd(el, [{node: rg.startContainer, offset: rg.startOffset}, {node: rg.endContainer, offset: rg.endOffset}]);
+  if (r.text !== el.innerText || r.pos[0] == null || r.pos[1] == null || r.pos[0] >= r.pos[1]) return null;
+  return {el: el, path: el.getAttribute("data-path"), s: r.pos[0], e: r.pos[1], text: r.text, runs: r.runs};
+}
+function fillMarkTool(){
+  var p = curPal(), m = markSel, chars = charsOf(m.text, m.runs);
+  function all(k, v){ for (var i = m.s; i < m.e; i++){ if (!chars[i] || chars[i][k] !== v) return false; } return true; }
+  function btn(k, v, label, extra, title){
+    var on = v === "" ? false : all(k, k === "k" ? parseFloat(v) : (k === "b" ? 1 : v));
+    return '<button type="button" data-mk="' + k + '" data-v="' + v + '" aria-pressed="' + on + '"' +
+           (title ? ' title="' + title + '"' : "") + (extra || "") + ">" + label + "</button>";
+  }
+  var h = '<div class="mtrow">' + btn("b", "1", "<b>太字</b>") +
+    [["", "おまかせ"]].concat(FONT_NAMES).map(function (o){
+      return btn("f", o[0], '<span style="font-family:' + (o[0] ? FONTS[o[0]] : "inherit") + '">あ</span>', "", o[1]);
+    }).join("") + "</div>";
+  h += '<div class="mtrow">' + MARK_SIZES.map(function (o){ return btn("k", String(o[0]), o[1]); }).join("") + "</div>";
+  h += '<div class="mtrow mtsw">' + btn("c", "", "", ' class="auto"', "おまかせの色") +
+    [[p.accent, "テーマ色1"], [p.accent2, "テーマ色2"], [p.accent3, "テーマ色3"]].concat(TEXT_COLORS).map(function (o){
+      return btn("c", o[0], "", ' style="background:' + o[0] + '"', o[1]);
+    }).join("") + "</div>";
+  h += '<div class="mtrow mtsw"><span class="mtl">マーカー</span>' + btn("m", "", "", ' class="none"', "マーカーなし") +
+    MARKERS.map(function (o){ return btn("m", o[0], "", ' style="background:' + o[0] + '"', o[1]); }).join("") +
+    '<button type="button" data-mk="clear" class="mtclear">元にもどす</button></div>';
+  $("marktool").innerHTML = h;
+}
+function placeMarkTool(){
+  var t = $("marktool"), sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  var r = sel.getRangeAt(0).getBoundingClientRect();
+  t.hidden = false;
+  var w = t.offsetWidth, h = t.offsetHeight;
+  var x = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2));
+  var y = r.top - h - 10;
+  if (y < 8) y = r.bottom + 10;
+  t.style.left = x + "px"; t.style.top = y + "px";
+}
+document.addEventListener("selectionchange", function (){
+  if (markBusy) return;
+  var s = currentSel();
+  if (!s){ $("marktool").hidden = true; markSel = null; return; }
+  markSel = s;
+  fillMarkTool();
+  placeMarkTool();
+});
+var markBusy = false;
+$("marktool").addEventListener("mousedown", function (e){ e.preventDefault(); });   // 選んだ所を外さない
+$("marktool").addEventListener("click", function (e){
+  var b = e.target.closest("button[data-mk]");
+  if (!b || !markSel) return;
+  var k = b.getAttribute("data-mk"), v = b.getAttribute("data-v");
+  var m = markSel, chars = charsOf(m.text, m.runs);
+  var turnOff = b.getAttribute("aria-pressed") === "true";
+  for (var i = m.s; i < m.e; i++){
+    var st = Object.assign({}, chars[i] || {});
+    if (k === "clear") st = {};
+    else if (v === "" || turnOff || (k === "k" && v === "1")) delete st[k];
+    else st[k] = k === "k" ? parseFloat(v) : (k === "b" ? 1 : v);
+    chars[i] = Object.keys(st).length ? st : null;
+  }
+  pushHistory();
+  setPath(doc, m.path, m.text);
+  O.setMarks(doc, m.path, packRuns(m.text, chars));
+  markBusy = true;
+  render(); saveLocal();
+  /* 描きなおした欄で、同じ所を選びなおす（続けて色と大きさを変えられるように） */
+  var el = document.querySelector('#scaler [contenteditable][data-path="' + m.path + '"]');
+  if (el){
+    var a = locate(el, m.s), z = locate(el, m.e);
+    if (a && z){
+      var rg = document.createRange();
+      rg.setStart(a.node, a.offset); rg.setEnd(z.node, z.offset);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(rg);
+    }
+  }
+  markBusy = false;
+  markSel = currentSel();
+  if (markSel){ fillMarkTool(); placeMarkTool(); } else $("marktool").hidden = true;
+});
+/** 何文字目かを、画面の欄の中の位置（文字のかたまりと、その中の何文字目か）にする */
+function locate(el, n){
+  var count = 0, found = null;
+  (function walk(node){
+    for (var c = node.firstChild; c && !found; c = c.nextSibling){
+      if (c.nodeType === 3){
+        if (n <= count + c.data.length){ found = {node: c, offset: n - count}; return; }
+        count += c.data.length;
+      } else if (c.nodeName === "BR"){ count += 1; }
+      else if (c.nodeType === 1) walk(c);
+    }
+  })(el);
+  return found || {node: el, offset: el.childNodes.length};
+}
+document.addEventListener("keydown", function (e){ if (e.key === "Escape") $("marktool").hidden = true; });
+window.addEventListener("scroll", function (){ if (!$("marktool").hidden) placeMarkTool(); }, true);
+
 /* フッターの文字を全部消して欄を出たら、フッターごと消す。もどすで消す前の文字に戻る */
 var footBefore = "";
 $("scaler").addEventListener("focusin", function (e){
@@ -1537,7 +1711,7 @@ function keepSrcTime(before, after){
 
 /** 先生が手で決めた文字の設定を、AI が落としても残す。
     同じ区分（src）のブロック、または同じ場所にある同じ種類のブロックに書き戻す。 */
-var TEXT_KEYS = ["hf", "hs", "hc", "tf", "ts", "tc"];
+var TEXT_KEYS = ["hf", "hs", "hc", "tf", "ts", "tc", "marks"];
 function keepTextStyle(before, after){
   function eachAt(d, fn){
     (d.pages || []).forEach(function (pg, pi){
@@ -1571,6 +1745,7 @@ async function revise(){
     doc = normalize(d);
     keepSrcTime(old, doc);
     keepTextStyle(old, doc);
+    if (!doc.marks && old.marks) doc.marks = old.marks;   // 号やフッターの一部の字
     render(); saveLocal();
     $("revlog").textContent = "直しました：" + ins;
     $("rev").value = "";

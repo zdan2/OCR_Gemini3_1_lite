@@ -491,6 +491,23 @@ details.card>summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);letter-s
 #decopicker{position:fixed;z-index:250;background:var(--surface);border:1px solid var(--line-2);border-radius:14px;
   box-shadow:var(--shadow);width:318px;padding:10px 12px 12px}
 #decopicker[hidden]{display:none}
+/* 文の一部の字：えらんだ文字の上に出る小さな道具 */
+#marktool{position:fixed;z-index:260;background:var(--surface);border:1px solid var(--line-2);border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);padding:7px;display:flex;flex-direction:column;gap:5px;width:max-content;max-width:340px;
+  font-family:var(--font-ui)}
+#marktool[hidden]{display:none}
+#marktool .mtrow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+#marktool button{min-width:30px;height:28px;padding:0 7px;border:1px solid var(--line-2);border-radius:8px;
+  background:var(--surface-2);color:var(--ink);font-size:12px;cursor:pointer;line-height:1}
+#marktool button span{font-size:16px}
+#marktool button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:transparent}
+#marktool .mtsw button{min-width:0;width:22px;height:22px;padding:0;border-radius:50%;border:2px solid #fff;
+  box-shadow:0 0 0 1px var(--line-2)}
+#marktool .mtsw button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--ink);background-clip:padding-box}
+#marktool .mtsw button.auto{background:conic-gradient(#e57373,#ffb74d,#fff176,#81c784,#64b5f6,#ba68c8,#e57373)}
+#marktool .mtsw button.none{background:linear-gradient(135deg,#fff 45%,#e05a5a 45%,#e05a5a 55%,#fff 55%)}
+#marktool .mtl{font-size:11px;color:var(--ink-3);margin-right:2px}
+#marktool .mtsw .mtclear{width:auto;height:24px;border-radius:8px;padding:0 8px;margin-left:auto;box-shadow:none;border:1px solid var(--line-2)}
 #decopicker h5{margin:4px 0 6px;font-size:11.5px;letter-spacing:.1em;color:var(--ink-3);font-weight:500}
 /* かざる → もじ */
 #decopicker .dseg{display:flex;gap:4px;margin:2px 0 8px}
@@ -559,7 +576,7 @@ details.card>summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);letter-s
 @media print{
   @page{size:A3 landscape;margin:0}
   html,body{height:auto;background:#fff}
-  .topbar,.panel,.stagebar,#illpicker,#blockpicker,#decopicker,#keydlg,#overlay,.toast{display:none!important}
+  .topbar,.panel,.stagebar,#illpicker,#blockpicker,#decopicker,#marktool,#keydlg,#overlay,.toast{display:none!important}
   .app,.main,.stage{display:block;height:auto}
   .scroller{overflow:visible;padding:0;display:block}
   .frame{width:auto!important;height:auto!important}

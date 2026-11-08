@@ -29,7 +29,82 @@ function pal(){ return PALETTES[(DOC.theme || {}).palette] || PALETTES.wakaba; }
 function ed(path, cls, tag){
   var t = tag || "span";
   return "<" + t + ' class="ed ' + (cls || "") + '" contenteditable="true" data-path="' + path +
-         '" spellcheck="false">' + esc(getPath(DOC, path)) + "</" + t + ">";
+         '" spellcheck="false">' + markedHtml(getPath(DOC, path), getMarks(DOC, path)) + "</" + t + ">";
+}
+
+/* ---------------- 文の一部の字（marks） ----------------
+   文字そのものは今までどおり飾りのない文で持ち、「どの言葉を・どう見せるか」を別に持つ。
+   ブロックの中の欄は block.marks["body"] のように、ブロックの外（号・フッターなど）は doc.marks["meta.issue"] に置く。
+   1つの印は {s:始まり, e:終わり, t:その言葉, c:色, f:字の形, k:大きさの倍率, b:太字, m:マーカーの色}。
+   AI やことばの直しで文が変わっても、同じ言葉（t）を探して付け直す。見つからなければその印は使わない。 */
+var MARK_KEYS = ["c", "f", "k", "b", "m"];
+function markHost(root, path){
+  var m = /^(pages\.\d+\.(?:top|bottom|columns\.\d+\.blocks)\.\d+)\.(.+)$/.exec(path);
+  if (m){
+    var b = getPath(root, m[1]);
+    if (b && typeof b === "object") return {host: b, key: m[2]};
+  }
+  return {host: root, key: path};
+}
+function getMarks(root, path){
+  if (!root) return null;
+  var h = markHost(root, path);
+  return (h.host.marks && typeof h.host.marks === "object" && h.host.marks[h.key]) || null;
+}
+function setMarks(root, path, runs){
+  var h = markHost(root, path);
+  if (runs && runs.length){
+    if (!h.host.marks || typeof h.host.marks !== "object") h.host.marks = {};
+    h.host.marks[h.key] = runs;
+  } else if (h.host.marks){
+    delete h.host.marks[h.key];
+    if (!Object.keys(h.host.marks).length) delete h.host.marks;
+  }
+}
+function resolveMarks(text, runs){
+  if (!Array.isArray(runs) || !text) return [];
+  var out = [];
+  runs.forEach(function (r){
+    if (!r || typeof r.t !== "string" || !r.t) return;
+    var s = parseInt(r.s, 10) || 0, t = r.t;
+    if (text.substr(s, t.length) !== t){
+      var best = -1, i = text.indexOf(t);
+      while (i >= 0){ if (best < 0 || Math.abs(i - s) < Math.abs(best - s)) best = i; i = text.indexOf(t, i + 1); }
+      if (best < 0) return;
+      s = best;
+    }
+    var o = {s: s, e: s + t.length, t: t};
+    MARK_KEYS.forEach(function (k){ if (r[k] != null && r[k] !== "" && r[k] !== false) o[k] = r[k]; });
+    out.push(o);
+  });
+  out.sort(function (a, b){ return a.s - b.s; });
+  var clean = [], end = 0;
+  out.forEach(function (r){ if (r.s >= end){ clean.push(r); end = r.e; } });
+  return clean;
+}
+function markCss(r){
+  var st = "";
+  if (/^#[0-9a-fA-F]{6}$/.test(r.c || "")) st += "color:" + r.c + ";";
+  if (r.f && FONTS[r.f]) st += "font-family:" + FONTS[r.f] + ";";
+  var k = parseFloat(r.k);
+  if (isFinite(k) && k >= 0.6 && k <= 2.5 && k !== 1) st += "font-size:" + k + "em;";
+  if (r.b) st += "font-weight:700;";
+  if (/^#[0-9a-fA-F]{6}$/.test(r.m || "")) st += "background:linear-gradient(transparent 55%," + r.m + " 55%);";
+  return st;
+}
+function markedHtml(text, runs){
+  text = text == null ? "" : String(text);
+  var rs = resolveMarks(text, runs);
+  if (!rs.length) return esc(text);
+  var h = "", at = 0;
+  rs.forEach(function (r){
+    h += esc(text.slice(at, r.s));
+    var data = MARK_KEYS.filter(function (k){ return r[k] != null; })
+                        .map(function (k){ return " data-m" + k + '="' + esc(String(r[k])) + '"'; }).join("");
+    h += '<span class="mk"' + data + ' style="' + markCss(r) + '">' + esc(text.slice(r.s, r.e)) + "</span>";
+    at = r.e;
+  });
+  return h + esc(text.slice(at));
 }
 /** クリックで差し替えできるイラスト。 */
 function illAt(path, cls, style){
@@ -525,7 +600,8 @@ global.Otayori = {
   PAGE_W: PAGE_W, PAGE_H: PAGE_H,
   renderDoc: renderDoc, getPath: getPath, setPath: setPath, esc: esc,
   blockProto: blockProto, itemProto: itemProto, BLOCK_KINDS: BLOCK_KINDS, TEXT_SIZES: TEXT_SIZES,
-  bgPattern: bgPattern, BOXED: BOXED, TAPED: TAPED, stickerStyle: stickerStyle
+  bgPattern: bgPattern, BOXED: BOXED, TAPED: TAPED, stickerStyle: stickerStyle,
+  getMarks: getMarks, setMarks: setMarks, resolveMarks: resolveMarks, MARK_KEYS: MARK_KEYS
 };
 
 })(window);
