@@ -286,6 +286,49 @@ function showConfig(form){
   renderStatus();
 }
 
+/* ---------------- 字数の上限・おねがい文 ---------------- */
+
+/** 区分（と欄）ごとの字数の上限。ことばタブからも使う。わからなければ null。 */
+function limitFor(src, part){
+  var en = enOf(src);
+  if (en) return en.limit;
+  if (classOf(src) >= 0 && (!part || part === "ねらい")) return AIM_LIMIT;
+  return null;
+}
+
+var FORM_PUBLIC_URL = "https://forms.gle/u2CSq5oGtVpvfCNy5";
+
+/** 未提出・前の号のまま・字数オーバーの区分をまとめた、先生たちへのおねがい文。 */
+function remindText(){
+  var S = (latest && latest.sections) || {};
+  var doc = A.getDoc() || {};
+  var linked = Object.keys(blocksBySrc(doc.pages ? doc : {pages: []})).length > 0;
+  var iss = issueOf(new Date());
+  var issue = (linked && doc.meta && doc.meta.issue) || (iss.y + "年" + iss.m + "月号");
+  var missing = [], old = [], over = [];
+  EN.map(function (e){ return e.k; }).concat(CLASSES.map(function (c){ return c.k; })).forEach(function (k){
+    var sec = S[k];
+    if (!sec){ missing.push(k); return; }
+    var t = new Date(sec.time);
+    if (!isNaN(t) && Date.now() - t.getTime() > 35 * 864e5) old.push(k);
+    var ci = classOf(k);
+    var n = ci >= 0 ? chars(sec.fields["ねらい"]) : chars(sec.fields["本文"] || firstValue(sec.fields));
+    var lim = ci >= 0 ? AIM_LIMIT : enOf(k).limit;
+    if (n > lim) over.push(k + "（" + (n - lim) + "字オーバー）");
+  });
+  if (!missing.length && !old.length && !over.length) return "";
+  var due = $("f-due").value.trim();
+  var lines = ["【光の原だより " + issue + "　原稿のおねがい】", "いつもありがとうございます。", ""];
+  if (missing.length) lines.push("まだ提出がない区分：" + missing.join("・"));
+  if (old.length) lines.push("前の号の原稿のままの区分：" + old.join("・"));
+  if (over.length) lines.push("字数をこえている区分：" + over.join("・") + "　上限までに縮めて、出し直しをお願いします。");
+  lines.push("");
+  lines.push((due ? due + "までに、" : "") + "下のフォームから提出してください。" +
+             "出し直すときは、もう一度送れば新しい方に入れかわります。");
+  lines.push(FORM_PUBLIC_URL);
+  return lines.join("\n");
+}
+
 /* ---------------- 画面 ---------------- */
 
 $("f-save").addEventListener("click", async function (){
@@ -298,6 +341,20 @@ $("f-save").addEventListener("click", async function (){
   } catch (e){ A.toast(e.message); }
 });
 $("f-fetch").addEventListener("click", function (){ fetchLatest(false); });
+$("f-remind").addEventListener("click", function (){
+  if (!latest){ A.toast("先に「最新を取り込む」を押してください。"); return; }
+  var text = remindText();
+  if (!text){ A.toast("全部の区分がそろっています。おねがいする区分はありません。"); return; }
+  $("f-remind-out").value = text;
+  $("f-remind-out").hidden = false;
+  $("f-remind-copy").hidden = false;
+});
+$("f-remind-copy").addEventListener("click", function (){
+  var btn = this, out = $("f-remind-out");
+  navigator.clipboard.writeText(out.value).then(
+    function (){ btn.textContent = "コピーしました"; setTimeout(function (){ btn.textContent = "コピー"; }, 1600); },
+    function (){ out.select(); A.toast("選択しました。手元の操作でコピーしてください。"); });
+});
 $("f-build").addEventListener("click", function (){
   var b = this;
   if (b.dataset.armed !== "1"){
@@ -325,6 +382,7 @@ $("f-auto").value = String(prefs.auto);
 renderStatus();
 
 window.OtayoriForm = {
+  limitFor: limitFor,
   onConfig: function (cfg){
     showConfig(cfg && cfg.form);
     if (configured) fetchLatest(true);

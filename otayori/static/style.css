@@ -70,10 +70,14 @@ button{font:inherit;color:inherit}
 /* ---------------- 作業パネル ---------------- */
 .panel{width:440px;flex:0 0 440px;display:flex;flex-direction:column;min-height:0;
   background:var(--surface);border-right:1px solid var(--line)}
-.tabs{display:flex;border-bottom:1px solid var(--line);padding:0 8px;gap:2px;overflow-x:auto;scrollbar-width:none}
-.tabs button{border:0;background:transparent;padding:11px 10px 9px;font-size:13px;cursor:pointer;color:var(--ink-2);
-  border-bottom:2px solid transparent;white-space:nowrap}
+/* タブは幅いっぱいに均等割り。数が増えても横にはみ出して隠れないように */
+.tabs{display:flex;border-bottom:1px solid var(--line);padding:0 4px}
+.tabs button{flex:1 1 0;min-width:0;border:0;background:transparent;padding:11px 2px 9px;font-size:12.5px;
+  cursor:pointer;color:var(--ink-2);border-bottom:2px solid transparent;white-space:nowrap;text-align:center;
+  overflow:hidden;text-overflow:ellipsis}
 .tabs button[aria-selected="true"]{color:var(--ink);font-weight:500;border-bottom-color:var(--ai)}
+/* スマホほど狭いときは2段に折り返す */
+@media (max-width:520px){ .tabs{flex-wrap:wrap} .tabs button{flex:1 1 30%} }
 .pane{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:14px;min-height:0}
 .pane[hidden]{display:none!important}
 .note{font-size:12.5px;color:var(--ink-2);line-height:1.75}
@@ -158,6 +162,21 @@ details.card>summary{cursor:pointer;font-size:12.5px;color:var(--ink-2);letter-s
 .draft .bar{display:flex;gap:6px;justify-content:space-between;align-items:center;margin-top:9px}
 .draft .n{font-size:11px;color:var(--ink-3);letter-spacing:.08em}
 .empty{color:var(--ink-3);font-size:12.5px;text-align:center;padding:18px 10px;border:1px dashed var(--line-2);border-radius:var(--r)}
+/* ことばタブ */
+.k-orig{display:flex;flex-direction:column;gap:6px}
+.k-text{font-size:12.5px;line-height:1.85;white-space:pre-wrap;max-height:180px;overflow:auto;color:var(--ink)}
+.k-modes{flex-wrap:wrap}
+.k-modes button{flex:1 1 auto}
+.draft .tx{white-space:pre-wrap}
+.draft .warn{color:#8d5a16}
+.chg{font-size:12px;line-height:1.7;margin:6px 0 0;padding-left:1.1em}
+.chg li{margin:2px 0}
+.chg del{color:var(--bad, #a0392f);text-decoration:line-through}
+.chg ins{color:#2d6b50;text-decoration:none;font-weight:500}
+.k-old summary{cursor:pointer;font-size:12.5px;color:var(--ink-2)}
+.k-old[open] summary{margin-bottom:4px}
+.k-old .row,.k-old .field{margin-top:8px}
+
 /* フォーム連携：提出状況の表 */
 .subs{width:100%;border-collapse:collapse;font-size:12.5px}
 .subs th,.subs td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}

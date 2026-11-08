@@ -357,6 +357,70 @@ def api_comment(payload):
     return {"drafts": [str(d) for d in (drafts or []) if str(d).strip()]}
 
 
+def _chars(text: str) -> int:
+    """字数。空白と改行は数えない（フォームの上限の数え方に合わせる）。"""
+    return len(re.sub(r"\s", "", text))
+
+
+KOTOBA_TASKS = {
+    "shorten": ("{n}字以内に縮める（空白と改行は数えない。いまは{now}字）。"
+                "言いたいことの順番と、子どもの具体的な様子は残す。"
+                "削るのは、前置き・くり返し・同じことを言いかえた文・なくても意味が通る言葉。"
+                "ぎりぎりではなく、{n}字より少し少なめに収める。", 3),
+    "proof": ("誤字・脱字・変換ミス・助詞の誤り・同じ言葉の書き方のばらつきだけを直す。"
+              "言い回しや内容、文の長さは変えない。", 1),
+    "soften": ("保護者が読みやすいように、かたい言い方・命令の言い方・専門用語をやわらげる。"
+               "内容と長さはほとんど変えない。", 2),
+}
+
+
+def api_kotoba(payload):
+    text = str(payload.get("text") or "").replace("\r\n", "\n").strip()
+    if not text:
+        raise RuntimeError("整える文章がありません。")
+    mode = str(payload.get("mode") or "shorten")
+    if mode == "free":
+        instruction = str(payload.get("instruction") or "").strip()
+        if not instruction:
+            raise RuntimeError("どう直すかを書いてください。")
+        task, count = instruction + "（指示に関係ない所は元のまま残す）", 2
+    elif mode in KOTOBA_TASKS:
+        task, count = KOTOBA_TASKS[mode]
+        if mode == "shorten":
+            try:
+                n = int(str(payload.get("length") or "").strip())
+            except ValueError:
+                raise RuntimeError("何字まで縮めるかを数字で入れてください。")
+            if n < 20:
+                raise RuntimeError("20字より短くはできません。")
+            task = task.format(n=n, now=_chars(text))
+    else:
+        raise RuntimeError("やることの種類がわかりません。")
+    prompt = fill(read_prompt("kotoba"), {
+        "WHERE": str(payload.get("where") or "（不明）"),
+        "TEXT": text,
+        "TASK": task,
+        "COUNT": str(count),
+    })
+    data = ask_json(
+        [{"role": "user", "content": prompt}],
+        model=pick_model(payload),
+        effort=pick_effort(payload, "medium"),
+        max_tokens=8000,
+    )
+    if not isinstance(data, dict):
+        data = {"drafts": data}
+    drafts = [str(d).strip() for d in (data.get("drafts") or []) if str(d).strip()]
+    changes = []
+    for c in data.get("changes") or []:
+        if isinstance(c, dict) and (c.get("before") or c.get("after")):
+            changes.append({"before": str(c.get("before") or ""), "after": str(c.get("after") or ""),
+                            "why": str(c.get("why") or "")})
+    if not drafts:
+        raise RuntimeError("案が返ってきませんでした。もう一度お試しください。")
+    return {"drafts": drafts, "changes": changes}
+
+
 # data/ には控えのほかに、取り込み先の設定（form_source.json）も置いている
 NOT_SAVED_DOCS = {"form_source"}
 
@@ -612,6 +676,7 @@ ROUTES = {
     "/api/compose": api_compose,
     "/api/revise": api_revise,
     "/api/comment": api_comment,
+    "/api/kotoba": api_kotoba,
     "/api/save": api_save,
     "/api/load": api_load,
 }

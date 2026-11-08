@@ -33,7 +33,7 @@
         <button type="button" role="tab" id="t-concept" aria-selected="false" aria-controls="p-concept">① つくる</button>
         <button type="button" role="tab" id="t-style" aria-selected="false" aria-controls="p-style">② かざる</button>
         <button type="button" role="tab" id="t-revise" aria-selected="false" aria-controls="p-revise">③ なおす</button>
-        <button type="button" role="tab" id="t-comment" aria-selected="false" aria-controls="p-comment">④ こども</button>
+        <button type="button" role="tab" id="t-comment" aria-selected="false" aria-controls="p-comment">④ ことば</button>
         <button type="button" role="tab" id="t-layout" aria-selected="false" aria-controls="p-layout">⑤ ほぞん</button>
       </nav>
 
@@ -66,6 +66,19 @@
         </div>
         <div class="hint" id="f-fetched"></div>
         <table class="subs" id="f-table"></table>
+        <div class="card">
+          <h4>提出のおねがい文</h4>
+          <div class="row" style="align-items:flex-end">
+            <div class="field" style="flex:1 1 140px">
+              <label class="lbl" for="f-due">しめきり（なくてもよい）</label>
+              <input type="text" id="f-due" placeholder="11月20日（木）">
+            </div>
+            <button class="btn" id="f-remind" type="button">文面をつくる</button>
+          </div>
+          <textarea id="f-remind-out" rows="8" readonly hidden style="margin-top:10px"></textarea>
+          <div class="row" style="margin-top:8px"><button class="btn sm" id="f-remind-copy" type="button" hidden>コピー</button></div>
+          <p class="hint" style="margin:8px 0 0">未提出・前の号のまま・字数オーバーの区分をまとめます。LINE やメールに貼って使えます。</p>
+        </div>
       </div>
 
       <div class="pane" id="p-concept" role="tabpanel" aria-labelledby="t-concept" hidden>
@@ -99,51 +112,84 @@
       </div>
 
       <div class="pane" id="p-comment" role="tabpanel" aria-labelledby="t-comment" hidden>
-        <p class="note">子どもの様子をメモで入れると、おたよりに載せる文章に整えます。採用した文は「こどもたちのすがた」のブロックに並びます。</p>
-        <div class="row">
-          <div class="field" style="flex:1 1 150px">
-            <label class="lbl" for="c-name">なまえ</label>
-            <input type="text" id="c-name" placeholder="ゆい">
-          </div>
-          <div class="field" style="flex:0 0 112px">
-            <label class="lbl" for="c-yobi">呼び方</label>
-            <select id="c-yobi">
-              <option value="ちゃん">◯◯ちゃん</option>
-              <option value="くん">◯◯くん</option>
-              <option value="さん">◯◯さん</option>
-              <option value="">呼び捨て</option>
-            </select>
-          </div>
-        </div>
+        <p class="note">紙面の文章をAIで整えます。字数オーバーを縮める・誤字の確認・言い回しをやさしく。
+          <b>紙の上の文章をクリックすると、ここで選ばれます。</b></p>
         <div class="field">
-          <label class="lbl" for="c-memo">メモ（箇条書きでも大丈夫）</label>
-          <textarea id="c-memo" rows="4" placeholder="・ブロックで長い電車を作った&#10;・年下の子に貸してあげていた&#10;・給食のにんじんを初めて食べた"></textarea>
+          <label class="lbl" for="k-target">整える文章</label>
+          <select id="k-target"></select>
         </div>
-        <div class="row">
-          <div class="field" style="flex:1 1 120px">
-            <label class="lbl" for="c-tone">文体</label>
-            <select id="c-tone">
-              <option>あたたかい</option><option>ていねい</option><option>はつらつ</option><option>かんけつ</option>
-            </select>
-          </div>
-          <div class="field" style="flex:0 0 112px">
-            <label class="lbl" for="c-len">長さ</label>
-            <select id="c-len">
-              <option value="60">60字</option>
-              <option value="100" selected>100字</option>
-              <option value="150">150字</option>
-              <option value="200">200字</option>
-            </select>
-          </div>
-          <div class="field" style="flex:0 0 92px">
-            <label class="lbl" for="c-count">案の数</label>
-            <select id="c-count">
-              <option>3</option><option>4</option><option>5</option>
-            </select>
-          </div>
+        <div class="card k-orig">
+          <div class="hint" id="k-meta"></div>
+          <div class="k-text" id="k-orig"></div>
         </div>
-        <button class="btn primary" id="btn-compose" type="button">文章をつくる</button>
-        <div class="drafts" id="drafts"></div>
+        <div class="seg k-modes" id="k-modes">
+          <button type="button" data-m="shorten" aria-pressed="true">字数に収める</button>
+          <button type="button" data-m="proof" aria-pressed="false">誤字・脱字</button>
+          <button type="button" data-m="soften" aria-pressed="false">やさしく</button>
+          <button type="button" data-m="free" aria-pressed="false">自由に</button>
+        </div>
+        <div class="row" id="k-len-row" style="align-items:flex-end">
+          <div class="field" style="flex:0 0 120px">
+            <label class="lbl" for="k-len">何字まで</label>
+            <input type="text" id="k-len" inputmode="numeric">
+          </div>
+          <p class="hint" style="margin:0 0 8px">空白と改行は数えません。</p>
+        </div>
+        <div class="field" id="k-free-row" hidden>
+          <label class="lbl" for="k-free">どう直すか</label>
+          <textarea id="k-free" rows="2" placeholder="例：最後に、保護者へのお礼のひとことを足して"></textarea>
+        </div>
+        <button class="btn primary" id="k-go" type="button">案をつくる</button>
+        <div class="drafts" id="k-drafts"></div>
+
+        <details class="card k-old">
+          <summary>こどもの様子からカードの文章を作る（AIで作るクラスだより用）</summary>
+          <p class="note" style="margin-top:8px">子どもの様子をメモで入れると、おたよりに載せる文章に整えます。採用した文は「こどもたちのすがた」のブロックに並びます。</p>
+          <div class="row">
+            <div class="field" style="flex:1 1 150px">
+              <label class="lbl" for="c-name">なまえ</label>
+              <input type="text" id="c-name" placeholder="ゆい">
+            </div>
+            <div class="field" style="flex:0 0 112px">
+              <label class="lbl" for="c-yobi">呼び方</label>
+              <select id="c-yobi">
+                <option value="ちゃん">◯◯ちゃん</option>
+                <option value="くん">◯◯くん</option>
+                <option value="さん">◯◯さん</option>
+                <option value="">呼び捨て</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label class="lbl" for="c-memo">メモ（箇条書きでも大丈夫）</label>
+            <textarea id="c-memo" rows="4" placeholder="・ブロックで長い電車を作った&#10;・年下の子に貸してあげていた&#10;・給食のにんじんを初めて食べた"></textarea>
+          </div>
+          <div class="row">
+            <div class="field" style="flex:1 1 120px">
+              <label class="lbl" for="c-tone">文体</label>
+              <select id="c-tone">
+                <option>あたたかい</option><option>ていねい</option><option>はつらつ</option><option>かんけつ</option>
+              </select>
+            </div>
+            <div class="field" style="flex:0 0 112px">
+              <label class="lbl" for="c-len">長さ</label>
+              <select id="c-len">
+                <option value="60">60字</option>
+                <option value="100" selected>100字</option>
+                <option value="150">150字</option>
+                <option value="200">200字</option>
+              </select>
+            </div>
+            <div class="field" style="flex:0 0 92px">
+              <label class="lbl" for="c-count">案の数</label>
+              <select id="c-count">
+                <option>3</option><option>4</option><option>5</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn primary" id="btn-compose" type="button">文章をつくる</button>
+          <div class="drafts" id="drafts"></div>
+        </details>
       </div>
 
       <div class="pane" id="p-layout" role="tabpanel" aria-labelledby="t-layout" hidden>
@@ -320,5 +366,6 @@
 <script src="/static/render.js"></script>
 <script src="/static/app.js"></script>
 <script src="/static/form.js"></script>
+<script src="/static/kotoba.js"></script>
 </body>
 </html>
