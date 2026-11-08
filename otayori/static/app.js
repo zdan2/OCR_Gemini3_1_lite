@@ -315,6 +315,16 @@ $("scaler").addEventListener("click", function (e){
       var it = s.list.splice(s.index, 1)[0];
       s.list.splice(to, 0, it);
     }
+  } else if (act === "blk-left" || act === "blk-right"){
+    /* 隣の段の、同じ順番の位置へ移す（段の長さが足りなければ、いちばん下へ） */
+    var mv = /^(pages\.\d+\.columns)\.(\d+)\.blocks\.(\d+)$/.exec(path);
+    var cols = mv && getPath(doc, mv[1]);
+    var from = mv ? +mv[2] : 0, at = mv ? +mv[3] : 0, toCol = from + (act === "blk-left" ? -1 : 1);
+    if (cols && cols[from] && cols[toCol]){
+      var moved = cols[from].blocks.splice(at, 1)[0];
+      var dest = cols[toCol].blocks;
+      dest.splice(Math.min(at, dest.length), 0, moved);
+    }
   } else if (act === "blk-del"){
     var s2 = splitPath(path);
     if (Array.isArray(s2.list)) s2.list.splice(s2.index, 1);

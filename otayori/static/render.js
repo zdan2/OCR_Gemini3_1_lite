@@ -210,11 +210,21 @@ function blkui(path, b){
     ? '<span class="src" title="フォームの「' + esc(b.src) + '」から。新しい提出があると差し替わります">フォーム：' +
       esc(b.src) + (b.srcTime ? "　" + shortTime(b.srcTime) : "　未提出") + "</span>"
     : "";
+  function btn(act, title, mark){
+    return '<button type="button" data-act="' + act + '" data-path="' + path + '" title="' + title + '">' + mark + "</button>";
+  }
+  /* 押しても動かない向きのボタンは出さない。段の中のブロックは左右の段へも移せる */
+  var list = getPath(DOC, path.replace(/\.\d+$/, "")) || [];
+  var idx = +path.split(".").pop();
+  var col = /^pages\.(\d+)\.columns\.(\d+)\.blocks\.\d+$/.exec(path);
+  var ncol = col ? (getPath(DOC, "pages." + col[1] + ".columns") || []).length : 0;
   return '<div class="blkui" data-ui>' + src +
     '<button type="button" class="deco" data-act="blk-deco" data-path="' + path + '" title="わく・テープ・かたむき">かざる</button>' +
-    '<button type="button" data-act="blk-up" data-path="' + path + '" title="上へ">↑</button>' +
-    '<button type="button" data-act="blk-down" data-path="' + path + '" title="下へ">↓</button>' +
-    '<button type="button" data-act="blk-del" data-path="' + path + '" title="消す">×</button></div>';
+    (col && +col[2] > 0 ? btn("blk-left", "左の段へ", "←") : "") +
+    (idx > 0 ? btn("blk-up", "上へ", "↑") : "") +
+    (idx < list.length - 1 ? btn("blk-down", "下へ", "↓") : "") +
+    (col && +col[2] < ncol - 1 ? btn("blk-right", "右の段へ", "→") : "") +
+    btn("blk-del", "消す", "×") + "</div>";
 }
 function tapeDeco(b, i){
   var box = b.box || "paper";
