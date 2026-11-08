@@ -285,17 +285,27 @@ def api_chat(payload):
     ]
     if not cleaned or cleaned[-1]["role"] != "user":
         raise RuntimeError("先生からの発言が必要です。")
-    messages = [{"role": "user", "content": read_prompt("chat")}] + cleaned[-12:]
+    summary = str(payload.get("summary") or "").strip()[:1500] or "（まだ紙面はありません）"
+    messages = [{"role": "user", "content": fill(read_prompt("chat"), {"DOC": summary})}] + cleaned[-12:]
     data = ask_json(
         messages,
         model=pick_model(payload),
         effort=pick_effort(payload, "low"),
         max_tokens=1500,
     )
+    status = data.get("status") if data.get("status") in ("ask", "ready", "revise", "illust") else "ask"
+    instruction = str(data.get("instruction") or "").strip()[:400]
+    items = [str(i).strip()[:20] for i in (data.get("items") or []) if str(i).strip()][:6]
+    if status == "revise" and not instruction:
+        status = "ask"
+    if status == "illust" and not items:
+        status = "ask"
     return {
-        "status": "ready" if data.get("status") == "ready" else "ask",
+        "status": status,
         "message": str(data.get("message") or ""),
         "chips": [str(c) for c in (data.get("chips") or [])][:4],
+        "instruction": instruction,
+        "items": items,
     }
 
 

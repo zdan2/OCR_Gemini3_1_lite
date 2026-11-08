@@ -1289,22 +1289,111 @@ $("btn-send").addEventListener("click", sendTurn);
 $("ask").addEventListener("keydown", function (e){
   if ((e.metaKey || e.ctrlKey) && e.key === "Enter"){ e.preventDefault(); sendTurn(); }
 });
+/* ---------------- 会話から、いまの紙面を直す・絵を貼る ----------------
+   「① つくる」の会話で「直して」「追加して」と言われたら、作り直さずにその場で処理する。 */
+function docSummary(){
+  var lines = ["号：" + (doc.meta.issue || "") + "　園：" + (doc.meta.school || "")];
+  doc.pages.forEach(function (pg, pi){
+    var names = [];
+    function add(list){
+      (list || []).forEach(function (b){ if (b) names.push(b.heading || b.text || b.title || b.kind); });
+    }
+    add(pg.top);
+    (pg.columns || []).forEach(function (c, ci){ names.push("［" + (ci + 1) + "段目］"); add(c.blocks); });
+    add(pg.bottom);
+    lines.push((pi + 1) + "ページ：" + names.join("・"));
+  });
+  return lines.join("\n").slice(0, 1500);
+}
+
+/** 名前でイラストを1つ探す。名前がそのままなら優先、同じくらいなら工房の絵を優先 */
+function findIll(word){
+  var w = kana(String(word || "").trim());
+  if (!w) return null;
+  var best = null, bestScore = -1;
+  ILL_KEYS.forEach(function (k){
+    var name = kana(ILL[k][1]), base = name.replace(/（.*?）/g, "");
+    var score = base === w ? 3 : name.indexOf(w) === 0 ? 2 : name.indexOf(w) >= 0 ? 1 : -1;
+    if (score > bestScore || (score >= 0 && score === bestScore && illStyle(k) === "kobo" && illStyle(best) !== "kobo")){
+      best = k; bestScore = score;
+    }
+  });
+  return bestScore >= 0 ? best : null;
+}
+
+function addIllustsFromChat(items){
+  var put = [], missing = [];
+  items.forEach(function (word){
+    var k = findIll(word);
+    if (!k){ missing.push(word); return; }
+    var spot = visibleSpot();
+    noteRecent(k);
+    addSticker(k, spot.pi, spot.x, spot.y);
+    put.push(ILL[k][1]);
+  });
+  if (put.length){
+    addBub("ai", put.join("、") + "を紙に貼りました。ドラッグで好きな所へ動かせます。" +
+                 "大きさは右下の●、向きは上の●で変えられます。");
+  }
+  if (missing.length){
+    addBub("ai", "「" + missing.join("」「") + "」は、いまのイラストの一覧にありませんでした。AIに描いてもらいますか？");
+    renderChips(missing.map(function (w){ return "AIに「" + w + "」を描いてもらう"; }), function (c){
+      var w = c.replace(/^AIに「/, "").replace(/」を描いてもらう$/, "");
+      $("t-style").click();
+      $("ai-draw-in").value = w;
+      var box = $("stickbox");
+      if (box && box.scrollIntoView) box.scrollIntoView({block: "start", behavior: "smooth"});
+      aiDraw();
+    });
+  }
+  saveLocal();
+}
+
+async function reviseFromChat(ins){
+  $("rev").value = ins;
+  var tb = thinkingBub("紙面を直しています（1分ほどかかります）");
+  var before = doc;
+  await revise();
+  tb.remove();
+  if (doc !== before){
+    addBub("ai", "直しました：" + ins + "\n気に入らなければ、上の「もどす」で前の紙面に戻せます。");
+  } else {
+    addBub("sys", "直せませんでした。言いかえてもう一度送るか、「③ なおす」で頼んでください。");
+  }
+  saveLocal();
+}
+
 async function sendTurn(){
   var v = $("ask").value.trim();
   if (!v || busy) return;
   $("ask").value = "";
-  addBub("user", v); turns.push({role: "user", content: v});
+  addBub("user", v);
+  var mine = {role: "user", content: v};
+  turns.push(mine);
   renderChips([], function (){}); setBusy(true);
-  var tb = thinkingBub();
+  var tb = thinkingBub(), next = null;
   try {
-    var r = await api("/api/chat", Object.assign({turns: turns.slice(-12)}, aiOpts()));
+    var r = await api("/api/chat", Object.assign({
+      turns: turns.slice(-12).map(function (t){ return {role: t.role, content: t.content}; }),
+      summary: docSummary()
+    }, aiOpts()));
     tb.remove();
     addBub("ai", r.message); turns.push({role: "assistant", content: r.message});
-    if (r.status === "ready") renderChips(["この内容で作る"], function (){ $("btn-make").click(); });
-    else renderChips(r.chips || [], function (c){ $("ask").value = c; $("ask").focus(); });
+    if (r.status === "revise"){
+      mine.kind = "edit";   // 新しいおたよりを作るときの材料には入れない
+      next = function (){ reviseFromChat(r.instruction); };
+    } else if (r.status === "illust"){
+      mine.kind = "edit";
+      next = function (){ addIllustsFromChat(r.items || []); };
+    } else if (r.status === "ready"){
+      renderChips(["この内容で作る"], function (){ $("btn-make").click(); });
+    } else {
+      renderChips(r.chips || [], function (c){ $("ask").value = c; $("ask").focus(); });
+    }
     saveLocal();
   } catch (e){ tb.remove(); addBub("sys", e.message); }
   finally { setBusy(false); }
+  if (next) next();
 }
 
 $("btn-make").addEventListener("click", compose);
@@ -1312,7 +1401,7 @@ async function compose(){
   if (busy) return;
   var extra = $("ask").value.trim();
   if (extra){ addBub("user", extra); turns.push({role: "user", content: extra}); $("ask").value = ""; }
-  var brief = turns.filter(function (t){ return t.role === "user"; })
+  var brief = turns.filter(function (t){ return t.role === "user" && t.kind !== "edit"; })
                    .map(function (t){ return t.content; }).join("\n");
   if (!brief.trim()){ toast("まず、どんなおたよりにしたいか一言教えてください。"); $("ask").focus(); return; }
   setBusy(true);
