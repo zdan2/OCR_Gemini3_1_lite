@@ -20,10 +20,24 @@
   ブロックの種類を変えたり、ほかの段へ動かしたりしても、src と srcTime はそのブロックから外さない。
   ほかのブロックに付けかえたり、新しく足したブロックに付けたりはしない。
 
-# ブロックの種類と任意の項目は、はじめに作ったときと同じ
-kind: title / head / lead / text / section / list / schedule / pair / chips / quiz / banner / note / comments / photo / table / illband
-- section：ラベル付きの段落を並べた記事（クラスのたよりなど）。{"kind":"section","heading":"みだし","ill":"キー","parts":[{"k":"ラベル","v":"文章"}]}
-  parts の k（「ねらい」「様子」など）は先生がフォームで書いた区切りなので、指示がなければ変えない。
+# ブロックの種類（kind）と、それぞれの形
+新しく足すブロックも、書きかえるブロックも、必ずこの形で書く。items の中身の形（文字か、{…}か）をまちがえると紙面に何も出ない。
+{"kind":"title","ill":"絵","illR":"絵","title":"題字","sub":"副題"}
+{"kind":"head","ill":"絵","text":"2ページ目の見出し"}
+{"kind":"lead","ill":"絵","heading":"見出し","body":"あいさつ文"}
+{"kind":"text","ill":"絵","heading":"見出し","body":"本文"}
+{"kind":"section","ill":"絵","heading":"見出し","parts":[{"k":"ラベル","v":"文章"}, …]}   ← クラスのたよりなど。k（「ねらい」「様子」）は先生の区切りなので、指示がなければ変えない
+{"kind":"list","ill":"絵","heading":"見出し","items":["文", …]}
+{"kind":"schedule","ill":"絵","heading":"◯月の予定","items":[{"date":"12/5","label":"運動会"}, …]}   ← 行事の予定はこれ。日にちがまだなら date は ""
+{"kind":"pair","ill":"絵","heading":"見出し","items":[{"k":"うた","v":"曲名"}, …]}
+{"kind":"chips","ill":"絵","heading":"おたんじょうびおめでとう","items":[{"name":"名前","note":"12/3"}, …]}   ← 丸いふだを並べる。items は必ず {"name","note"}
+{"kind":"quiz","ill":"絵","heading":"見出し","q":"問い","a":"こたえ"}
+{"kind":"banner","ill":"絵","text":"一行のおしらせ"}
+{"kind":"note","ill":"絵","heading":"編集後記","body":"文"}
+{"kind":"comments","ill":"絵","heading":"こどもたちのすがた","cols":3,"items":[…]}
+{"kind":"photo","heading":"見出し","items":[{"caption":"写真のせつめい"}, …]}
+{"kind":"table","ill":"絵","heading":"見出し","head":["列1","列2"],"rows":[["",""], …]}
+{"kind":"illband","items":["絵", …]}
 任意: box（paper/balloon/frame/plain/band）、tape（tape/taper/pin/none）、tilt（-1.5〜1.5）、bg（見出しの色。いまの値を残す）
 
 # 文章の決まり

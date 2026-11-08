@@ -136,8 +136,43 @@ function normalize(d){
       return {w: isFinite(w) && w > 0 ? Math.min(4, Math.max(0.5, w)) : 1,
               blocks: Array.isArray(c && c.blocks) ? c.blocks.filter(Boolean) : []};
     });
+    pg.top.forEach(fixItems); pg.bottom.forEach(fixItems);
+    pg.columns.forEach(function (c){ c.blocks.forEach(fixItems); });
   });
   return d;
+}
+
+/* AI が項目を「ただの文字」で返したり、ちがう名前で返したりしても、画面が読める形にそろえる。
+   （例：chips の items を ["運動会","発表会"] で返すと、名前の欄が空になって何も見えなかった） */
+function fixItems(b){
+  if (!b || typeof b !== "object") return;
+  function str(v){ return v == null ? "" : typeof v === "object" ? "" : String(v); }
+  function pick(o, keys){ for (var i = 0; i < keys.length; i++){ if (o[keys[i]] != null && typeof o[keys[i]] !== "object") return String(o[keys[i]]); } return ""; }
+  function split(s){   // 「12/5 運動会」「うた：曲名」を前と後ろに分ける
+    var m = /^\s*(.+?)\s*[：:]\s*(.+)$/.exec(s) || /^\s*(\d{1,2}[\/月]\d{1,2}日?(?:\s*[（(].[)）])?)\s+(.+)$/.exec(s);
+    return m ? [m[1], m[2]] : ["", s];
+  }
+  var key = b.kind === "section" ? "parts" : "items";
+  if (!Array.isArray(b[key])) return;
+  b[key] = b[key].filter(function (it){ return it != null; }).map(function (it){
+    var o = typeof it === "object" ? it : null, s = o ? "" : str(it), p;
+    switch (b.kind){
+      case "chips":
+        return o ? {name: pick(o, ["name", "label", "title", "text", "k"]), note: pick(o, ["note", "date", "v", "sub"])} : {name: s, note: ""};
+      case "schedule":
+        if (o) return {date: pick(o, ["date", "d", "day", "when", "k"]), label: pick(o, ["label", "title", "name", "text", "t", "v"])};
+        p = split(s); return {date: p[0], label: p[1]};
+      case "pair": case "section":
+        if (o) return {k: pick(o, ["k", "label", "title", "name"]), v: pick(o, ["v", "value", "text", "body"])};
+        p = split(s); return {k: p[0], v: p[1]};
+      case "photo":
+        return o ? it : {caption: s};
+      case "list":
+        return o ? pick(o, ["text", "label", "v", "name", "title", "body"]) : s;
+      default:
+        return it;
+    }
+  });
 }
 
 /* ---------------- 保存 ---------------- */
