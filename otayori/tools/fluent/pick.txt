@@ -1,0 +1,534 @@
+# Fluent Emoji（Flat）から、保育園のおたよりで使うものを選ぶ。
+# 書き方：フォルダ名|日本語の名前|分類（探すときの言葉は名前と分類の両方に当たる）
+
+## ぎょうじ
+Carp streamer|こいのぼり|ぎょうじ
+Japanese dolls|ひなにんぎょう|ぎょうじ
+Tanabata tree|たなばた（ささかざり）|ぎょうじ
+Milky way|あまのがわ|ぎょうじ
+Moon viewing ceremony|おつきみ|ぎょうじ
+Dango|おだんご|ぎょうじ
+Jack-o-lantern|ハロウィン（かぼちゃ）|ぎょうじ
+Ghost|おばけ|ぎょうじ
+Christmas tree|クリスマスツリー|ぎょうじ
+Santa claus|サンタクロース|ぎょうじ
+Pine decoration|かどまつ（おしょうがつ）|ぎょうじ
+Ogre|おに（せつぶん）|ぎょうじ
+Beans|まめ（まめまき）|ぎょうじ
+Kite|たこあげ|ぎょうじ
+Snowman|ゆきだるま|ぎょうじ
+Kimono|きもの|ぎょうじ
+Shinto shrine|じんじゃ（はつもうで）|ぎょうじ
+Wrapped gift|プレゼント|ぎょうじ
+Birthday cake|たんじょうびケーキ|ぎょうじ
+Party popper|クラッカー|ぎょうじ
+Partying face|おいわい|ぎょうじ
+Confetti ball|くすだま|ぎょうじ
+Balloon|ふうせん|ぎょうじ
+Fireworks|はなび|ぎょうじ
+Sparkler|せんこうはなび|ぎょうじ
+Red paper lantern|ちょうちん（なつまつり）|ぎょうじ
+Wind chime|ふうりん|ぎょうじ
+Folding hand fan|せんす|ぎょうじ
+Graduation cap|そつえん（そつぎょう）|ぎょうじ
+Ribbon|リボン|ぎょうじ
+Rosette|ロゼット|ぎょうじ
+Sports medal|メダル（うんどうかい）|ぎょうじ
+1st place medal|きんメダル|ぎょうじ
+Trophy|トロフィー|ぎょうじ
+Chequered flag|ゴールのはた|ぎょうじ
+Triangular flag|さんかくのはた|ぎょうじ
+Crossed flags|こっき|ぎょうじ
+Performing arts|はっぴょうかい|ぎょうじ
+Circus tent|サーカス|ぎょうじ
+Ticket|チケット|ぎょうじ
+Carousel horse|メリーゴーランド|ぎょうじ
+Ferris wheel|かんらんしゃ|ぎょうじ
+Heart with ribbon|ハートのプレゼント|ぎょうじ
+Bouquet|はなたば|ぎょうじ
+
+## どうぶつ
+Bear|くま|どうぶつ
+Teddy bear|くまのぬいぐるみ|どうぶつ
+Panda|パンダ|どうぶつ
+Polar bear|しろくま|どうぶつ
+Koala|コアラ|どうぶつ
+Rabbit|うさぎ|どうぶつ
+Rabbit face|うさぎのかお|どうぶつ
+Cat|ねこ|どうぶつ
+Cat face|ねこのかお|どうぶつ
+Black cat|くろねこ|どうぶつ
+Dog|いぬ|どうぶつ
+Dog face|いぬのかお|どうぶつ
+Poodle|プードル|どうぶつ
+Mouse|ねずみ|どうぶつ
+Hamster|ハムスター|どうぶつ
+Chipmunk|りす|どうぶつ
+Hedgehog|はりねずみ|どうぶつ
+Fox|きつね|どうぶつ
+Raccoon|あらいぐま|どうぶつ
+Wolf|おおかみ|どうぶつ
+Deer|しか|どうぶつ
+Boar|いのしし|どうぶつ
+Monkey|さる|どうぶつ
+Monkey face|さるのかお|どうぶつ
+Gorilla|ゴリラ|どうぶつ
+Lion|ライオン|どうぶつ
+Tiger face|とら|どうぶつ
+Elephant|ぞう|どうぶつ
+Giraffe|きりん|どうぶつ
+Zebra|しまうま|どうぶつ
+Hippopotamus|かば|どうぶつ
+Rhinoceros|さい|どうぶつ
+Kangaroo|カンガルー|どうぶつ
+Camel|らくだ|どうぶつ
+Llama|ラマ|どうぶつ
+Sloth|なまけもの|どうぶつ
+Otter|かわうそ|どうぶつ
+Seal|あざらし|どうぶつ
+Horse|うま|どうぶつ
+Unicorn|ユニコーン|どうぶつ
+Pig|ぶた|どうぶつ
+Pig face|ぶたのかお|どうぶつ
+Cow|うし|どうぶつ
+Cow face|うしのかお|どうぶつ
+Ewe|ひつじ|どうぶつ
+Goat|やぎ|どうぶつ
+Chicken|にわとり|どうぶつ
+Rooster|おんどり|どうぶつ
+Baby chick|ひよこ（よこ）|どうぶつ
+Front-facing baby chick|ひよこ（まえ）|どうぶつ
+Hatching chick|たまごからひよこ|どうぶつ
+Duck|あひる|どうぶつ
+Penguin|ペンギン|どうぶつ
+Owl|ふくろう|どうぶつ
+Bird|ことり（あお）|どうぶつ
+Dove|はと|どうぶつ
+Parrot|インコ|どうぶつ
+Swan|はくちょう|どうぶつ
+Flamingo|フラミンゴ|どうぶつ
+Peacock|くじゃく|どうぶつ
+Bat|こうもり|どうぶつ
+Frog|かえる（かお）|どうぶつ
+Turtle|かめ|どうぶつ
+Snake|へび|どうぶつ
+Crocodile|わに|どうぶつ
+Lizard|とかげ|どうぶつ
+Dragon|りゅう|どうぶつ
+T-rex|きょうりゅう|どうぶつ
+Sauropod|くびながりゅう|どうぶつ
+Paw prints|どうぶつのあしあと|どうぶつ
+
+## むし・うみ
+Butterfly|ちょうちょ（あお）|むし・うみ
+Honeybee|みつばち|むし・うみ
+Lady beetle|てんとうむし（まる）|むし・うみ
+Ant|あり|むし・うみ
+Snail|かたつむり（から）|むし・うみ
+Bug|いもむし|むし・うみ
+Beetle|こがねむし|むし・うみ
+Cricket|こおろぎ|むし・うみ
+Worm|みみず|むし・うみ
+Spider|くも（むし）|むし・うみ
+Spider web|くものす|むし・うみ
+Mosquito|か（むしよけ）|むし・うみ
+Fish|さかな|むし・うみ
+Tropical fish|ねったいぎょ|むし・うみ
+Blowfish|ふぐ|むし・うみ
+Octopus|たこ|むし・うみ
+Squid|いか|むし・うみ
+Crab|かに|むし・うみ
+Shrimp|えび|むし・うみ
+Whale|くじら|むし・うみ
+Spouting whale|しおふきくじら|むし・うみ
+Dolphin|いるか|むし・うみ
+Shark|さめ|むし・うみ
+Jellyfish|くらげ|むし・うみ
+Spiral shell|まきがい|むし・うみ
+Coral|さんご|むし・うみ
+Water wave|なみ|むし・うみ
+
+## はな・しぜん
+Cherry blossom|さくら（はなびら）|はな・しぜん
+Tulip|チューリップ（あか）|はな・しぜん
+Sunflower|ひまわり（おおきい）|はな・しぜん
+Rose|ばら|はな・しぜん
+Hibiscus|ハイビスカス|はな・しぜん
+Blossom|はな（きいろ）|はな・しぜん
+Hyacinth|ヒヤシンス|はな・しぜん
+White flower|しろいはな|はな・しぜん
+Lotus|はす|はな・しぜん
+Seedling|ふたば|はな・しぜん
+Herb|はっぱ|はな・しぜん
+Four leaf clover|よつばのクローバー|はな・しぜん
+Shamrock|みつばのクローバー|はな・しぜん
+Maple leaf|もみじ（あか）|はな・しぜん
+Fallen leaf|おちば|はな・しぜん
+Leaf fluttering in wind|かぜとはっぱ|はな・しぜん
+Deciduous tree|き|はな・しぜん
+Evergreen tree|もみのき|はな・しぜん
+Palm tree|やしのき|はな・しぜん
+Cactus|サボテン|はな・しぜん
+Potted plant|うえきばち|はな・しぜん
+Mushroom|きのこ（あか）|はな・しぜん
+Brown mushroom|きのこ（ちゃいろ）|はな・しぜん
+Chestnut|くり（いが）|はな・しぜん
+Sheaf of rice|いなほ|はな・しぜん
+Nest with eggs|とりのす|はな・しぜん
+Feather|はね|はな・しぜん
+Rock|いし|はな・しぜん
+Wood|まき|はな・しぜん
+Mountain|やま|はな・しぜん
+Mount fuji|ふじさん|はな・しぜん
+Snow-capped mountain|ゆきやま|はな・しぜん
+Sunrise|ひので（うみ）|はな・しぜん
+Sunrise over mountains|ひので（やま）|はな・しぜん
+Night with stars|ほしぞら|はな・しぜん
+Camping|キャンプ|はな・しぜん
+Tent|テント|はな・しぜん
+National park|こうえん|はな・しぜん
+Beach with umbrella|うみとパラソル|はな・しぜん
+Hot springs|おんせん|はな・しぜん
+
+## てんき・そら
+Sun|たいよう（ひかり）|てんき・そら
+Sun with face|にこにこたいよう|てんき・そら
+Sun behind small cloud|はれときどきくもり|てんき・そら
+Sun behind rain cloud|はれのちあめ|てんき・そら
+Cloud|くも（そら）|てんき・そら
+Cloud with rain|あめ|てんき・そら
+Cloud with snow|ゆき（そら）|てんき・そら
+Cloud with lightning|かみなり|てんき・そら
+Umbrella with rain drops|あまがさ|てんき・そら
+Closed umbrella|とじたかさ|てんき・そら
+Rainbow|にじ（そら）|てんき・そら
+Snowflake|ゆきのけっしょう|てんき・そら
+Droplet|しずく|てんき・そら
+Star|ほし（きいろ）|てんき・そら
+Glowing star|きらきらぼし|てんき・そら
+Shooting star|ながれぼし|てんき・そら
+Sparkles|きらきら|てんき・そら
+Crescent moon|みかづき|てんき・そら
+Full moon|まんげつ|てんき・そら
+First quarter moon face|つき（かお）|てんき・そら
+Cyclone|たいふう|てんき・そら
+Wind face|かぜ|てんき・そら
+Fog|きり|てんき・そら
+Ice|こおり|てんき・そら
+Ringed planet|どせい|てんき・そら
+Rocket|ロケット|てんき・そら
+Globe showing asia-australia|ちきゅう|てんき・そら
+
+## たべもの
+Rice ball|おにぎり（のり）|たべもの
+Bento box|おべんとう|たべもの
+Cooked rice|ごはん|たべもの
+Curry rice|カレーライス|たべもの
+Steaming bowl|めん（ラーメン）|たべもの
+Spaghetti|スパゲッティ|たべもの
+Sushi|おすし|たべもの
+Dumpling|ぎょうざ|たべもの
+Oden|おでん|たべもの
+Fried shrimp|エビフライ|たべもの
+Bread|しょくパン|たべもの
+Croissant|クロワッサン|たべもの
+Sandwich|サンドイッチ|たべもの
+Hamburger|ハンバーガー|たべもの
+Pizza|ピザ|たべもの
+French fries|フライドポテト|たべもの
+Egg|たまご|たべもの
+Cooking|めだまやき|たべもの
+Pot of food|おなべ|たべもの
+Bowl with spoon|スープ|たべもの
+Green salad|サラダ|たべもの
+Meat on bone|おにく|たべもの
+Poultry leg|からあげ（チキン）|たべもの
+Cheese wedge|チーズ|たべもの
+Roasted sweet potato|やきいも|たべもの
+Potato|じゃがいも|たべもの
+Carrot|にんじん|たべもの
+Tomato|トマト|たべもの
+Eggplant|なす|たべもの
+Cucumber|きゅうり|たべもの
+Broccoli|ブロッコリー|たべもの
+Bell pepper|ピーマン|たべもの
+Onion|たまねぎ|たべもの
+Leafy green|はっぱのやさい|たべもの
+Pea pod|えだまめ|たべもの
+Ear of corn|とうもろこし|たべもの
+Hot pepper|とうがらし|たべもの
+Red apple|りんご|たべもの
+Green apple|あおりんご|たべもの
+Tangerine|みかん（ひとつ）|たべもの
+Lemon|レモン|たべもの
+Banana|バナナ|たべもの
+Grapes|ぶどう|たべもの
+Strawberry|いちご（ひとつ）|たべもの
+Watermelon|すいか（ひときれ）|たべもの
+Melon|メロン|たべもの
+Peach|もも|たべもの
+Pear|なし|たべもの
+Cherries|さくらんぼ|たべもの
+Pineapple|パイナップル|たべもの
+Kiwi fruit|キウイ|たべもの
+Blueberries|ブルーベリー|たべもの
+Chopsticks|おはし|たべもの
+Spoon|スプーン|たべもの
+Fork and knife|フォークとナイフ|たべもの
+Fork and knife with plate|おさら|たべもの
+
+## おやつ・のみもの
+Shortcake|ショートケーキ|おやつ・のみもの
+Cupcake|カップケーキ|おやつ・のみもの
+Doughnut|ドーナツ|おやつ・のみもの
+Cookie|クッキー|おやつ・のみもの
+Candy|あめ（おかし）|おやつ・のみもの
+Lollipop|ペロペロキャンディ|おやつ・のみもの
+Chocolate bar|チョコレート|おやつ・のみもの
+Custard|プリン|おやつ・のみもの
+Ice cream|アイス（カップ）|おやつ・のみもの
+Soft ice cream|ソフトクリーム|おやつ・のみもの
+Shaved ice|かきごおり|おやつ・のみもの
+Pancakes|ホットケーキ|おやつ・のみもの
+Popcorn|ポップコーン|おやつ・のみもの
+Rice cracker|せんべい|おやつ・のみもの
+Honey pot|はちみつ|おやつ・のみもの
+Pie|パイ|おやつ・のみもの
+Waffle|ワッフル|おやつ・のみもの
+Glass of milk|ぎゅうにゅう（ミルク・コップ）|おやつ・のみもの
+Baby bottle|ほにゅうびん|おやつ・のみもの
+Teacup without handle|おちゃ|おやつ・のみもの
+Hot beverage|あたたかいのみもの|おやつ・のみもの
+Cup with straw|ジュース|おやつ・のみもの
+Beverage box|パックのジュース|おやつ・のみもの
+Teapot|ティーポット|おやつ・のみもの
+
+## のりもの
+Bus|バス（よこ）|のりもの
+Oncoming bus|バス（まえ）|のりもの
+Automobile|くるま|のりもの
+Taxi|タクシー|のりもの
+Police car|パトカー|のりもの
+Ambulance|きゅうきゅうしゃ|のりもの
+Fire engine|しょうぼうしゃ|のりもの
+Delivery truck|トラック|のりもの
+Tractor|トラクター|のりもの
+Bicycle|じてんしゃ|のりもの
+Kick scooter|キックボード|のりもの
+Train|でんしゃ|のりもの
+Bullet train|しんかんせん|のりもの
+Locomotive|きかんしゃ|のりもの
+Airplane|ひこうき|のりもの
+Helicopter|ヘリコプター|のりもの
+Ship|ふね|のりもの
+Sailboat|ヨット|のりもの
+Children crossing|おうだんほどう（こうつうあんぜん）|のりもの
+Vertical traffic light|しんごう|のりもの
+Bus stop|バスてい|のりもの
+
+## あそび
+Kite|たこ|あそび
+Yo-yo|ヨーヨー|あそび
+Puzzle piece|パズル|あそび
+Game die|サイコロ|あそび
+Soccer ball|サッカーボール|あそび
+Baseball|やきゅうのボール|あそび
+Basketball|バスケットボール|あそび
+Volleyball|ボール（しろ）|あそび
+Tennis|テニスボール|あそび
+Flying disc|フリスビー|あそび
+Playground slide|すべりだい（こうえん・ゆうぐ）|あそび
+Roller skate|ローラースケート|あそび
+Ice skate|スケート|あそび
+Sled|そり|あそび
+Bubbles|しゃぼんだま（あわ）|あそび
+Water pistol|みずでっぽう|あそび
+Goggles|ゴーグル|あそび
+One-piece swimsuit|みずぎ|あそび
+Ring buoy|うきわ（しろあか）|あそび
+Bucket|バケツ|あそび
+Artist palette|えのぐ|あそび
+Paintbrush|ふで|あそび
+Crayon|クレヨン（いっぽん）|あそび
+Magic wand|まほうのステッキ|あそび
+Crown|おうかん|あそび
+Robot|ロボット|あそび
+Yarn|けいと|あそび
+Framed picture|え（がく）|あそび
+
+## おんがく
+Musical note|おんぷ（ひとつ）|おんがく
+Musical notes|おんぷ（ふたつ）|おんがく
+Musical score|がくふ|おんがく
+Musical keyboard|ピアノ|おんがく
+Guitar|ギター|おんがく
+Violin|バイオリン|おんがく
+Trumpet|トランペット|おんがく
+Drum|たいこ（ドラム）|おんがく
+Long drum|わだいこ|おんがく
+Maracas|マラカス|おんがく
+Flute|ふえ|おんがく
+Accordion|アコーディオン|おんがく
+Microphone|マイク|おんがく
+Bell|かね（すず）|おんがく
+Megaphone|メガホン|おんがく
+
+## ほけん・くらし
+Tooth|は（はみがき）|ほけん・くらし
+Toothbrush|はブラシ（はみがき）|ほけん・くらし
+Soap|せっけん（てあらい）|ほけん・くらし
+Thermometer|たいおんけい（ねつ）|ほけん・くらし
+Face with thermometer|ねつ|ほけん・くらし
+Face with medical mask|マスク（かぜ）|ほけん・くらし
+Sneezing face|くしゃみ|ほけん・くらし
+Pill|くすり|ほけん・くらし
+Adhesive bandage|ばんそうこう|ほけん・くらし
+Syringe|ちゅうしゃ（よぼうせっしゅ）|ほけん・くらし
+Stethoscope|ちょうしんき（けんしん）|ほけん・くらし
+Hospital|びょういん|ほけん・くらし
+Microbe|ばいきん|ほけん・くらし
+Sweat droplets|あせ|ほけん・くらし
+Shower|シャワー（みずあそび）|ほけん・くらし
+Bathtub|おふろ|ほけん・くらし
+Toilet|トイレ|ほけん・くらし
+Roll of paper|トイレットペーパー|ほけん・くらし
+Sponge|スポンジ|ほけん・くらし
+Lotion bottle|ほしつクリーム|ほけん・くらし
+Sleeping face|ねむる|ほけん・くらし
+Zzz|おひるね（すやすや）|ほけん・くらし
+Bed|ベッド|ほけん・くらし
+Person in bed|ねんね|ほけん・くらし
+Yawning face|あくび|ほけん・くらし
+Hot face|あつい|ほけん・くらし
+Cold face|さむい|ほけん・くらし
+Fire extinguisher|しょうかき（ひなんくんれん）|ほけん・くらし
+Rescue workers helmet|ぼうさいヘルメット|ほけん・くらし
+Fire|ひ（かじ）|ほけん・くらし
+Warning|ちゅうい|ほけん・くらし
+Broom|ほうき|ほけん・くらし
+Wastebasket|ごみばこ|ほけん・くらし
+Recycling symbol|リサイクル|ほけん・くらし
+Litter in bin sign|ごみはごみばこへ|ほけん・くらし
+Potable water|すいどう（のめるみず）|ほけん・くらし
+
+## もちもの・がっこう
+School|がっこう（えん）|もちもの・がっこう
+House|いえ|もちもの・がっこう
+House with garden|にわのあるいえ|もちもの・がっこう
+Backpack|リュック（あか）|もちもの・がっこう
+Billed cap|ぼうし（キャップ）|もちもの・がっこう
+Womans hat|ぼうし（むぎわら）|もちもの・がっこう
+T-shirt|Tシャツ|もちもの・がっこう
+Shorts|ズボン|もちもの・がっこう
+Dress|ワンピース|もちもの・がっこう
+Coat|コート|もちもの・がっこう
+Scarf|マフラー|もちもの・がっこう
+Gloves|てぶくろ（みどり）|もちもの・がっこう
+Socks|くつした|もちもの・がっこう
+Running shoe|うんどうぐつ|もちもの・がっこう
+Womans boot|ブーツ|もちもの・がっこう
+Name badge|なふだ|もちもの・がっこう
+Pencil|えんぴつ|もちもの・がっこう
+Straight ruler|じょうぎ|もちもの・がっこう
+Scissors|はさみ|もちもの・がっこう
+Notebook|ノート|もちもの・がっこう
+Open book|えほん（ひらいた）|もちもの・がっこう
+Books|ほん（つみかさね）|もちもの・がっこう
+Memo|メモ|もちもの・がっこう
+Calendar|カレンダー|もちもの・がっこう
+Tear-off calendar|ひめくり|もちもの・がっこう
+Alarm clock|めざましどけい|もちもの・がっこう
+Mantelpiece clock|おきどけい|もちもの・がっこう
+Hourglass done|すなどけい|もちもの・がっこう
+Envelope|ふうとう|もちもの・がっこう
+Love letter|おてがみ（ハート）|もちもの・がっこう
+Postbox|ポスト|もちもの・がっこう
+Package|こづつみ|もちもの・がっこう
+Clipboard|クリップボード|もちもの・がっこう
+Pushpin|がびょう|もちもの・がっこう
+Paperclip|クリップ|もちもの・がっこう
+Light bulb|でんきゅう（ひらめき）|もちもの・がっこう
+Key|かぎ|もちもの・がっこう
+Camera|カメラ|もちもの・がっこう
+Telephone|でんわ|もちもの・がっこう
+Mobile phone|けいたいでんわ|もちもの・がっこう
+Basket|かご|もちもの・がっこう
+Chair|いす|もちもの・がっこう
+Door|ドア|もちもの・がっこう
+Window|まど|もちもの・がっこう
+Candle|ろうそく|もちもの・がっこう
+Thread|いと|もちもの・がっこう
+Safety pin|あんぜんピン|もちもの・がっこう
+
+## ひと・て
+Baby|あかちゃん|ひと・て
+Child|こども|ひと・て
+Girl|おんなのこ|ひと・て
+Boy|おとこのこ|ひと・て
+Woman teacher|せんせい（おんな）|ひと・て
+Man teacher|せんせい（おとこ）|ひと・て
+Woman cook|ちょうりのせんせい|ひと・て
+Woman health worker|ほけんのせんせい|ひと・て
+Woman feeding baby|ミルクをあげる|ひと・て
+Old woman|おばあちゃん|ひと・て
+Old man|おじいちゃん|ひと・て
+Firefighter|しょうぼうしさん|ひと・て
+Police officer|おまわりさん|ひと・て
+Farmer|のうかのひと|ひと・て
+Person running|はしる|ひと・て
+Person walking|あるく|ひと・て
+Person swimming|およぐ|ひと・て
+Person biking|じてんしゃにのる|ひと・て
+Person cartwheeling|そくてん|ひと・て
+Person bowing|おじぎ|ひと・て
+Person raising hand|てをあげる|ひと・て
+Raising hands|ばんざい|ひと・て
+Clapping hands|はくしゅ|ひと・て
+Thumbs up|いいね|ひと・て
+Waving hand|てをふる|ひと・て
+Raised hand|て（パー）|ひと・て
+Victory hand|ピース|ひと・て
+Ok hand|オーケー|ひと・て
+Folded hands|おねがい（てをあわせる）|ひと・て
+Heart hands|てでハート|ひと・て
+Open hands|ひらいたて|ひと・て
+Writing hand|かく|ひと・て
+Index pointing up|ゆびさし（うえ）|ひと・て
+Handshake|あくしゅ|ひと・て
+Footprints|あしあと（ひと）|ひと・て
+Ear|みみ|ひと・て
+Nose|はな（かお）|ひと・て
+Eye|め|ひと・て
+
+## かお・きもち
+Smiling face with smiling eyes|にっこり|かお・きもち
+Grinning face|にこにこ|かお・きもち
+Beaming face with smiling eyes|わらう|かお・きもち
+Face with tears of joy|おおわらい|かお・きもち
+Smiling face with hearts|だいすき|かお・きもち
+Smiling face with heart-eyes|ハートのめ|かお・きもち
+Star-struck|きらきらのめ|かお・きもち
+Hugging face|ぎゅー|かお・きもち
+Thinking face|かんがえる|かお・きもち
+Crying face|なく|かお・きもち
+Loudly crying face|おおなき|かお・きもち
+Pouting face|ぷんぷん|かお・きもち
+Astonished face|びっくり（かお）|かお・きもち
+Slightly smiling face|ほほえみ|かお・きもち
+Winking face|ウインク|かお・きもち
+Face savoring food|おいしい|かお・きもち
+Face with tongue|べー|かお・きもち
+Relieved face|ほっ|かお・きもち
+Pleading face|うるうる|かお・きもち
+Red heart|ハート（あか）|かお・きもち
+Pink heart|ハート（ピンク）|かお・きもち
+Yellow heart|ハート（きいろ）|かお・きもち
+Two hearts|ふたつのハート|かお・きもち
+Sparkling heart|きらきらハート|かお・きもち
+Speech balloon|ふきだし|かお・きもち
+Thought balloon|かんがえごと|かお・きもち
+Hundred points|100てん|かお・きもち
+Check mark button|できた（チェック）|かお・きもち
+Red question mark|はてな|かお・きもち
+Red exclamation mark|びっくりマーク|かお・きもち
+Baby symbol|あかちゃんマーク|かお・きもち

@@ -8,3 +8,5 @@ data/
 form_source.json
 # ルートの *.txt 除外（連絡帳のOCR出力用）から、AIへの指示ファイルは外す
 !prompts/*.txt
+!static/fluent-LICENSE.txt
+!tools/fluent/pick.txt
