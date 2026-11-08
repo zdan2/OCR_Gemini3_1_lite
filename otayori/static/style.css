@@ -80,6 +80,9 @@ button{font:inherit;color:inherit}
 @media (max-width:520px){ .tabs{flex-wrap:wrap} .tabs button{flex:1 1 30%} }
 .pane{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:14px;min-height:0}
 .pane[hidden]{display:none!important}
+/* パネルの中身は押し縮めない（会話が長くなっても入力欄がつぶれないように）。あふれたらパネルごとスクロール */
+.pane>*{flex-shrink:0}
+#ask,#rev{min-height:7.5em}
 .note{font-size:12.5px;color:var(--ink-2);line-height:1.75}
 .hint{font-size:11.5px;color:var(--ink-3);letter-spacing:.03em}
 .lbl{display:block;font-size:11.5px;letter-spacing:.07em;color:var(--ink-3);margin-bottom:5px;font-weight:500}
