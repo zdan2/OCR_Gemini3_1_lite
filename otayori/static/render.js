@@ -219,7 +219,7 @@ function blkui(path, b){
   var col = /^pages\.(\d+)\.columns\.(\d+)\.blocks\.\d+$/.exec(path);
   var ncol = col ? (getPath(DOC, "pages." + col[1] + ".columns") || []).length : 0;
   return '<div class="blkui" data-ui>' + src +
-    '<button type="button" class="deco" data-act="blk-deco" data-path="' + path + '" title="わく・テープ・かたむき">かざる</button>' +
+    '<button type="button" class="deco" data-act="blk-deco" data-path="' + path + '" title="わく・テープ・かたむき・もじ">かざる</button>' +
     (col && +col[2] > 0 ? btn("blk-left", "左の段へ", "←") : "") +
     (idx > 0 ? btn("blk-up", "上へ", "↑") : "") +
     (idx < list.length - 1 ? btn("blk-down", "下へ", "↓") : "") +
@@ -236,6 +236,19 @@ function tapeDeco(b, i){
   if (box === "paper") h += '<span class="fold"></span>';
   return h;
 }
+/** 先生が手で決めた文字。h＝見出し、t＝本文。f＝字の形（FONTS のキー）、s＝大きさの倍率、c＝色 */
+var TEXT_SIZES = [[0.8, "小さく"], [1, "ふつう"], [1.2, "大きく"], [1.45, "もっと大きく"]];
+function textStyle(b){
+  var css = "", attr = "";
+  ["h", "t"].forEach(function (w){
+    var f = b[w + "f"], s = parseFloat(b[w + "s"]), c = b[w + "c"];
+    if (f && FONTS[f]){ css += "--u" + w + "f:" + FONTS[f] + ";"; attr += " data-u" + w + "f"; }
+    if (isFinite(s) && s >= 0.6 && s <= 2 && s !== 1) css += "--u" + w + "k:" + s + ";";
+    if (/^#[0-9a-fA-F]{6}$/.test(c || "")){ css += "--u" + w + "c:" + c + ";"; attr += " data-u" + w + "c"; }
+  });
+  return {css: css, attr: attr};
+}
+
 function heading(b, path){
   if (!b.heading) return "";
   return '<div class="hd">' + illAt(path + ".ill") + '<span class="tx">' + ed(path + ".heading") + "</span></div>" +
@@ -257,7 +270,9 @@ function renderBlock(b, path, i){
   if (tilt) st += "transform:rotate(" + Math.max(-3, Math.min(3, tilt)) + "deg);";
   /* bg: 色画用紙の色（パレットの cards の番号）。フォームのクラス記事で使う */
   if (typeof b.bg === "number" && p.cards) st += "background:" + p.cards[Math.abs(b.bg) % p.cards.length] + ";";
-  var style = st ? ' style="' + st + '"' : "";
+  var ts = textStyle(b);
+  st += ts.css;
+  var style = (st ? ' style="' + st + '"' : "") + ts.attr;
   var inner = "";
 
   if (kind === "title"){
@@ -509,7 +524,7 @@ function renderDoc(doc){
 global.Otayori = {
   PAGE_W: PAGE_W, PAGE_H: PAGE_H,
   renderDoc: renderDoc, getPath: getPath, setPath: setPath, esc: esc,
-  blockProto: blockProto, itemProto: itemProto, BLOCK_KINDS: BLOCK_KINDS,
+  blockProto: blockProto, itemProto: itemProto, BLOCK_KINDS: BLOCK_KINDS, TEXT_SIZES: TEXT_SIZES,
   bgPattern: bgPattern, BOXED: BOXED, TAPED: TAPED, stickerStyle: stickerStyle
 };
 

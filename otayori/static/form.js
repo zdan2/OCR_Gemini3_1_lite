@@ -25,7 +25,7 @@ var CLASSES = [
 ];
 var AIM_LIMIT = 330;
 var PART_ORDER = ["ねらい", "保育", "食事", "お知らせ", "お願い"];
-var KEEP = ["heading", "ill", "box", "tape", "tilt", "bg"];   // 差し替えても残す見た目
+var KEEP = ["heading", "ill", "box", "tape", "tilt", "bg", "hf", "hs", "hc", "tf", "ts", "tc"];   // 差し替えても残す見た目
 var EMPTY = "（まだ提出されていません）";
 var LS = "otayori-form.v1";
 

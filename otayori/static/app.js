@@ -540,6 +540,7 @@ var DECO_TILT = [[-1.5, "ひだり"], [0, "まっすぐ"], [1.5, "みぎ"]];
 var DECO_GROW = [["no", "ふつう"], ["yes", "下までのばす"]];
 
 function openDecoPicker(el, path){
+  if (path !== decoPath) textTarget = "h";   // 別のブロックを開いたら、まず見出しから
   decoPath = path;
   fillDecoPicker();
   place($("decopicker"), el);
@@ -572,7 +573,48 @@ function fillDecoPicker(){
     });
     h += '<p class="dhint">横幅は、段と段のあいだの ⇔ を左右にドラッグして変えます。</p>';
   }
+  h += textRows(b);
   $("decopicker").innerHTML = h + "</div>";
+}
+
+/* もじ：見出しと本文、それぞれの字の形・大きさ・色。AI に頼まずに手で決められる */
+var textTarget = "h";
+var TEXT_COLORS = [["#333a42", "くろ"], ["#7a5230", "ちゃいろ"], ["#d0453a", "あか"], ["#e0821e", "だいだい"],
+                   ["#3f8a4a", "みどり"], ["#3b6fb6", "あお"], ["#8a5bb0", "むらさき"], ["#d85c8a", "ピンク"]];
+function textParts(b){
+  var hasH = b.kind === "title" || b.kind === "head" || !!b.heading;
+  var hasT = ["head", "illband"].indexOf(b.kind) < 0;
+  return {h: hasH, t: hasT};
+}
+function textRows(b){
+  var has = textParts(b);
+  if (!has.h && !has.t) return "";
+  if (!has[textTarget]) textTarget = has.h ? "h" : "t";
+  var w = textTarget, p = curPal();
+  var h = "<h5>もじ</h5>";
+  if (has.h && has.t){
+    h += '<div class="dseg">' + [["h", b.kind === "title" ? "題字" : "見出し"], ["t", b.kind === "title" ? "副題" : "本文"]].map(function (o){
+      return '<button type="button" data-k="ttarget" data-v="' + o[0] + '" aria-pressed="' + (o[0] === w) + '">' + o[1] + "</button>";
+    }).join("") + "</div>";
+  }
+  var curF = b[w + "f"] || "", curS = parseFloat(b[w + "s"]) || 1, curC = b[w + "c"] || "";
+  h += '<div class="dpro dfont">' + [["", "おまかせ"]].concat(FONT_NAMES).map(function (o){
+    var fam = o[0] ? FONTS[o[0]] : "inherit";
+    return '<button type="button" data-k="text" data-p="f" data-v="' + o[0] + '" aria-pressed="' + (o[0] === curF) + '">' +
+           '<b style="font-family:' + fam + '">あア</b><small>' + o[1] + "</small></button>";
+  }).join("") + "</div>";
+  h += '<div class="dpro dsize" style="margin-top:6px">' + O.TEXT_SIZES.map(function (o, i){
+    return '<button type="button" data-k="text" data-p="s" data-v="' + o[0] + '" aria-pressed="' + (o[0] === curS) + '">' +
+           '<b style="font-size:' + (11 + i * 3) + 'px">あ</b><small>' + o[1] + "</small></button>";
+  }).join("") + "</div>";
+  var cols = [[p.accent, "テーマ色1"], [p.accent2, "テーマ色2"], [p.accent3, "テーマ色3"]].concat(TEXT_COLORS);
+  h += '<div class="dcol" style="margin-top:8px"><button type="button" class="auto" data-k="text" data-p="c" data-v="" title="おまかせ" aria-pressed="' + !curC + '"></button>' +
+       cols.map(function (o){
+         return '<button type="button" data-k="text" data-p="c" data-v="' + o[0] + '" title="' + o[1] + '" style="background:' + o[0] + '" aria-pressed="' +
+                (o[0].toLowerCase() === curC.toLowerCase()) + '"></button>';
+       }).join("") + "</div>";
+  h += '<button type="button" class="btn sm ghost dreset" data-k="treset">もじを元にもどす</button>';
+  return h;
 }
 $("decopicker").addEventListener("click", function (e){
   var btn = e.target.closest("button[data-k]");
@@ -580,8 +622,14 @@ $("decopicker").addEventListener("click", function (e){
   var b = getPath(doc, decoPath);
   if (!b) return;
   var k = btn.getAttribute("data-k"), v = btn.getAttribute("data-v");
+  if (k === "ttarget"){ textTarget = v; fillDecoPicker(); return; }
   pushHistory();
-  if (k === "tilt") b.tilt = parseFloat(v);
+  if (k === "text"){
+    var key = textTarget + btn.getAttribute("data-p");
+    if (!v || v === "1") delete b[key]; else b[key] = btn.getAttribute("data-p") === "s" ? parseFloat(v) : v;
+  }
+  else if (k === "treset"){ ["hf", "hs", "hc", "tf", "ts", "tc"].forEach(function (x){ delete b[x]; }); }
+  else if (k === "tilt") b.tilt = parseFloat(v);
   else if (k === "grow"){ if (v === "yes") b.grow = true; else delete b.grow; }
   else if (k === "tape" && v === "auto") delete b.tape;
   else b[k] = v;
@@ -1487,6 +1535,29 @@ function keepSrcTime(before, after){
   each(after, function (b){ if (b.src in times) b.srcTime = times[b.src]; });
 }
 
+/** 先生が手で決めた文字の設定を、AI が落としても残す。
+    同じ区分（src）のブロック、または同じ場所にある同じ種類のブロックに書き戻す。 */
+var TEXT_KEYS = ["hf", "hs", "hc", "tf", "ts", "tc"];
+function keepTextStyle(before, after){
+  function eachAt(d, fn){
+    (d.pages || []).forEach(function (pg, pi){
+      function walk(list, base){ (list || []).forEach(function (b, i){ if (b) fn(b, base + "." + i); }); }
+      walk(pg.top, pi + ".top"); walk(pg.bottom, pi + ".bottom");
+      (pg.columns || []).forEach(function (c, ci){ walk(c.blocks, pi + ".c" + ci); });
+    });
+  }
+  var bySrc = {}, byAt = {};
+  eachAt(before, function (b, at){
+    if (!TEXT_KEYS.some(function (k){ return b[k] != null; })) return;
+    if (b.src) bySrc[b.src] = b; else byAt[at] = b;
+  });
+  eachAt(after, function (b, at){
+    var old = b.src ? bySrc[b.src] : (byAt[at] && byAt[at].kind === b.kind ? byAt[at] : null);
+    if (!old) return;
+    TEXT_KEYS.forEach(function (k){ if (b[k] == null && old[k] != null) b[k] = old[k]; });
+  });
+}
+
 async function revise(){
   var ins = $("rev").value.trim();
   if (!ins || busy) return;
@@ -1499,6 +1570,7 @@ async function revise(){
     var old = doc;
     doc = normalize(d);
     keepSrcTime(old, doc);
+    keepTextStyle(old, doc);
     render(); saveLocal();
     $("revlog").textContent = "直しました：" + ins;
     $("rev").value = "";
